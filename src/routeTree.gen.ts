@@ -13,14 +13,18 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedSellRouteImport } from './routes/_authenticated/sell'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as EventsIndexRouteImport } from './routes/events/index'
+import { Route as EventsEventIdRouteImport } from './routes/events/$eventId'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as LegalGrievanceRouteImport } from './routes/legal/grievance'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalRefundPolicyRouteImport } from './routes/legal/refund-policy'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,6 +45,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -55,6 +64,16 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsEventIdRoute = EventsEventIdRouteImport.update({
+  id: '/events/$eventId',
+  path: '/events/$eventId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LegalCookiesRoute = LegalCookiesRouteImport.update({
   id: '/legal/cookies',
@@ -81,32 +100,46 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminEventsRoute =
+  AuthenticatedAdminEventsRouteImport.update({
+    id: '/events',
+    path: '/events',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/sell': typeof AuthenticatedSellRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/events/': typeof EventsIndexRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/sell': typeof AuthenticatedSellRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/events': typeof EventsIndexRoute
+  '/admin/events': typeof AuthenticatedAdminEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,14 +147,18 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/sell': typeof AuthenticatedSellRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/events/$eventId': typeof EventsEventIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/events/': typeof EventsIndexRoute
+  '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -129,41 +166,53 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/search'
+    | '/admin'
     | '/onboarding'
     | '/sell'
     | '/settings'
+    | '/events/$eventId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/events/'
+    | '/admin/events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/search'
+    | '/admin'
     | '/onboarding'
     | '/sell'
     | '/settings'
+    | '/events/$eventId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/events'
+    | '/admin/events'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/search'
+    | '/_authenticated/admin'
     | '/_authenticated/onboarding'
     | '/_authenticated/sell'
     | '/_authenticated/settings'
+    | '/events/$eventId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/events/'
+    | '/_authenticated/admin/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,11 +220,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   SearchRoute: typeof SearchRoute
+  EventsEventIdRoute: typeof EventsEventIdRoute
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalGrievanceRoute: typeof LegalGrievanceRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalRefundPolicyRoute: typeof LegalRefundPolicyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  EventsIndexRoute: typeof EventsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -208,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -228,6 +286,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$eventId': {
+      id: '/events/$eventId'
+      path: '/events/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof EventsEventIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/legal/cookies': {
       id: '/legal/cookies'
@@ -264,16 +336,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/events': {
+      id: '/_authenticated/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSellRoute: typeof AuthenticatedSellRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSellRoute: AuthenticatedSellRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
@@ -287,11 +379,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   SearchRoute: SearchRoute,
+  EventsEventIdRoute: EventsEventIdRoute,
   LegalCookiesRoute: LegalCookiesRoute,
   LegalGrievanceRoute: LegalGrievanceRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalRefundPolicyRoute: LegalRefundPolicyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  EventsIndexRoute: EventsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

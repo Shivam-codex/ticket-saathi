@@ -12,7 +12,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const submit = (e: FormEvent) => { e.preventDefault(); navigate({ to: "/search", search: { q: q.trim() || undefined } }); };
+  const submit = (e: FormEvent) => { e.preventDefault(); navigate({ to: "/events", search: { q: q.trim() || undefined } }); };
   return (
     <form onSubmit={submit} role="search" className={`relative ${className}`}>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />

@@ -11,6 +11,25 @@ Peer-to-peer resale for movies, sports and concerts with face-value caps, transp
 - Legal pages: Terms, Refund & Buyer Protection, Privacy, Grievance Officer, Cookie notice.
 - Layout: header with search, footer with legal links, mobile bottom nav.
 
+## Phase 2 — Events & discovery
+- Admin `/admin/events`: create/edit events (category, venue or new venue, IST date/time, banner upload or URL, organiser, face-value tiers, transfer allowed, resale max % override). Every save is audit-logged.
+- Home: Trending, Near me (city picker), This weekend. `/events`: filters (city, category, date, max price) with pagination (12/page). `/events/:id`: listings sorted by price, server-rendered title/description/OpenGraph/JSON-LD.
+- AI search: free text on `/events?q=` → Gemini (Lovable AI) → Zod-validated filters, with "Understood as" chips; falls back to keyword search on failure.
+- Realtime: listing changes refresh counts on home, list and detail pages.
+- 20 seeded events across Pune, Mumbai, Delhi, Bengaluru (8 venues).
+- Performance: resized responsive images, lazy loading, skeleton loaders.
+
+### Phase 2 test checklist
+1. Home shows Trending, Near me and This weekend. Picking Mumbai changes Near me.
+2. /events: Mumbai + Sports shows 3 events. Clear resets the filters. The page buttons appear when there are more than 12 results.
+3. Search "cheap IPL tickets in Pune this Sunday" shows "Understood as: Pune · sports · IPL · under ₹1,000 · date".
+4. Search "coldplay" finds the Coldplay event (keyword path).
+5. Event page: view source has the event title in <title>, og:image and JSON-LD.
+6. "Pushpa 3" shows "Resale not allowed".
+7. As admin: create an event with 2 tiers and a banner. It appears on /events. Editing it writes an audit_logs row.
+8. As non-admin, /admin/events redirects home.
+9. Insert or activate a listing. The "on sale" count updates on home and the event page without a reload.
+
 ## Database
 profiles, user_roles, venues, events, listings, orders, ledger_entries, payouts, disputes, notifications, fee_config (5%/5%/18% GST seeded), resale_rules (global face-value cap seeded), audit_logs, consents. RLS on every table.
 

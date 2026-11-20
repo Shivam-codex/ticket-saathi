@@ -6,7 +6,7 @@ export function BottomNav() {
   const { t } = useI18n();
   const items = [
     { to: "/", icon: Home, label: t("nav.home") },
-    { to: "/search", icon: Search, label: t("nav.search") },
+    { to: "/events", icon: Search, label: t("nav.search") },
     { to: "/sell", icon: PlusCircle, label: t("nav.sell") },
     { to: "/settings", icon: User, label: t("nav.account") },
   ] as const;

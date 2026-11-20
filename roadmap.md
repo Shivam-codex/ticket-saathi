@@ -1,4 +1,6 @@
 # Roadmap
 - [x] Phase 1: setup, schema+RLS, auth, consent/privacy, legal pages, layout
-- [ ] Phone OTP live — blocked: SMS provider (e.g. Twilio) must be connected in Auth settings
-- [ ] Phase 2: pricing module (fees/GST/cap) + tests, listings, event admin
+- [x] Phase 2: admin events, discovery pages, AI search, realtime counts, seed data
+- [ ] Phone OTP live — blocked: SMS provider must be connected in Auth settings
+- [ ] Make an admin — blocked: user must sign in once so their account can be given the admin role
+- [ ] Phase 3: pricing module (fees/GST/cap) + tests, create listing, checkout

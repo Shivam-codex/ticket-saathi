@@ -143,37 +143,59 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["event_category"]
           created_at: string
+          description: string | null
+          face_value_tiers: Json
           id: string
           image_url: string | null
           is_resellable: boolean
+          min_face_value_paise: number | null
           organizer: string | null
+          resale_max_percent: number | null
           starts_at: string
           title: string
+          updated_at: string
           venue_id: string
         }
         Insert: {
           category: Database["public"]["Enums"]["event_category"]
           created_at?: string
+          description?: string | null
+          face_value_tiers?: Json
           id?: string
           image_url?: string | null
           is_resellable?: boolean
+          min_face_value_paise?: number | null
           organizer?: string | null
+          resale_max_percent?: number | null
           starts_at: string
           title: string
+          updated_at?: string
           venue_id: string
         }
         Update: {
           category?: Database["public"]["Enums"]["event_category"]
           created_at?: string
+          description?: string | null
+          face_value_tiers?: Json
           id?: string
           image_url?: string | null
           is_resellable?: boolean
+          min_face_value_paise?: number | null
           organizer?: string | null
+          resale_max_percent?: number | null
           starts_at?: string
           title?: string
+          updated_at?: string
           venue_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "events_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "event_cards"
+            referencedColumns: ["venue_id"]
+          },
           {
             foreignKeyName: "events_venue_id_fkey"
             columns: ["venue_id"]
@@ -308,6 +330,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "listings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_cards"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "listings_event_id_fkey"
             columns: ["event_id"]
@@ -586,6 +615,13 @@ export type Database = {
             foreignKeyName: "resale_rules_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
+            referencedRelation: "event_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resale_rules_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
@@ -641,7 +677,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      event_cards: {
+        Row: {
+          active_listings: number | null
+          category: Database["public"]["Enums"]["event_category"] | null
+          city: string | null
+          from_price_paise: number | null
+          id: string | null
+          image_url: string | null
+          is_resellable: boolean | null
+          min_face_value_paise: number | null
+          min_price_paise: number | null
+          organizer: string | null
+          resale_max_percent: number | null
+          starts_at: string | null
+          state_code: string | null
+          title: string | null
+          venue_id: string | null
+          venue_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       become_seller: { Args: never; Returns: boolean }

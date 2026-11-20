@@ -37,3 +37,7 @@ use the editor.
 - Orders, ledger, payouts and audit logs are written only by server code with the admin client — users can read their own but never write.
 - Consents are append-only rows per purpose; the latest row per purpose is the current choice — keeps a full audit trail.
 - UI strings go through `src/lib/i18n.tsx` (en/hi/mr) — every new key needs all three languages.
+- Public discovery reads go through the `event_cards` view (security_invoker) via server functions in `src/functions/events.functions.ts`; event/list pages render from loader data and refresh via `router.invalidate()` on Realtime listing changes — the template has no SSR query dehydration.
+- AI search (`src/lib/ai/parse-query.server.ts`) only produces filters that are re-validated by `normaliseAiFilters`; any AI failure falls back to keyword search — AI never touches queries directly.
+- Event times are stored as UTC and always entered/displayed in IST (`Asia/Kolkata`).
+- Event banners live in the private `event-banners` bucket (public buckets are blocked); uploads store a long-lived signed URL in `events.image_url`.
