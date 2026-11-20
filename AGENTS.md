@@ -28,3 +28,12 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Architecture rules
+- Framework is TanStack Start (not Next.js); pages live in `src/routes/`, server logic in `createServerFn` under `src/functions/*.functions.ts` (a `server/` folder is blocked from client imports) — platform constraint.
+- All money/fee/GST/price-cap math lives only in a server-only pricing module (e.g. `src/lib/pricing.server.ts`) with unit tests; client only displays server quotes — prevents tampering.
+- Amounts are integer paise (`bigint`), percentages are basis points (`*_bps`) — no float rounding errors.
+- Seller eligibility is enforced in the database (`is_seller_ready`, `become_seller`, listings insert policy), the UI only mirrors it — RLS is the source of truth.
+- Orders, ledger, payouts and audit logs are written only by server code with the admin client — users can read their own but never write.
+- Consents are append-only rows per purpose; the latest row per purpose is the current choice — keeps a full audit trail.
+- UI strings go through `src/lib/i18n.tsx` (en/hi/mr) — every new key needs all three languages.
