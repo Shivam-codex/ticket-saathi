@@ -283,13 +283,81 @@ export type Database = {
           },
         ]
       }
+      listing_secrets: {
+        Row: {
+          checks: Json
+          created_at: string
+          extracted: Json
+          file_mime: string
+          file_path: string
+          file_sha256: string | null
+          listing_id: string
+          listing_status_mirror: Database["public"]["Enums"]["listing_status"]
+          qr_hash: string | null
+          qr_source: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          checks?: Json
+          created_at?: string
+          extracted?: Json
+          file_mime: string
+          file_path: string
+          file_sha256?: string | null
+          listing_id: string
+          listing_status_mirror?: Database["public"]["Enums"]["listing_status"]
+          qr_hash?: string | null
+          qr_source?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          checks?: Json
+          created_at?: string
+          extracted?: Json
+          file_mime?: string
+          file_path?: string
+          file_sha256?: string | null
+          listing_id?: string
+          listing_status_mirror?: Database["public"]["Enums"]["listing_status"]
+          qr_hash?: string | null
+          qr_source?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_secrets_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_secrets_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       listings: {
         Row: {
+          block_reason: string | null
           created_at: string
           event_id: string
           face_value_paise: number
           held_until: string | null
           id: string
+          is_paused: boolean
           price_paise: number
           quantity: number
           seat_info: string | null
@@ -297,14 +365,18 @@ export type Database = {
           seller_id: string
           status: Database["public"]["Enums"]["listing_status"]
           ticket_proof_path: string | null
+          trust_score: number | null
           updated_at: string
+          verification_status: string
         }
         Insert: {
+          block_reason?: string | null
           created_at?: string
           event_id: string
           face_value_paise: number
           held_until?: string | null
           id?: string
+          is_paused?: boolean
           price_paise: number
           quantity?: number
           seat_info?: string | null
@@ -312,14 +384,18 @@ export type Database = {
           seller_id: string
           status?: Database["public"]["Enums"]["listing_status"]
           ticket_proof_path?: string | null
+          trust_score?: number | null
           updated_at?: string
+          verification_status?: string
         }
         Update: {
+          block_reason?: string | null
           created_at?: string
           event_id?: string
           face_value_paise?: number
           held_until?: string | null
           id?: string
+          is_paused?: boolean
           price_paise?: number
           quantity?: number
           seat_info?: string | null
@@ -327,7 +403,9 @@ export type Database = {
           seller_id?: string
           status?: Database["public"]["Enums"]["listing_status"]
           ticket_proof_path?: string | null
+          trust_score?: number | null
           updated_at?: string
+          verification_status?: string
         }
         Relationships: [
           {
@@ -701,6 +779,7 @@ export type Database = {
     }
     Functions: {
       become_seller: { Args: never; Returns: boolean }
+      expire_started_listings: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

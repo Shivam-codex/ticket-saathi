@@ -15,6 +15,13 @@
       "when": 1795200274069,
       "tag": "0001_phase2_events_discovery",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795200868359,
+      "tag": "0002_phase3_selling",
+      "breakpoints": true
     }
   ]
 }

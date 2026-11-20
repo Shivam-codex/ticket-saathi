@@ -41,3 +41,7 @@ use the editor.
 - AI search (`src/lib/ai/parse-query.server.ts`) only produces filters that are re-validated by `normaliseAiFilters`; any AI failure falls back to keyword search — AI never touches queries directly.
 - Event times are stored as UTC and always entered/displayed in IST (`Asia/Kolkata`).
 - Event banners live in the private `event-banners` bucket (public buckets are blocked); uploads store a long-lived signed URL in `events.image_url`.
+- Listing rules (cap resolution, seller/event checks) live in `src/lib/listing-rules.server.ts` and run on every create, price edit, resume and admin approval — never trust a client price.
+- Ticket files are private (`ticket-proofs` bucket, `<uid>/` folders); secrets (file path, QR hash, extracted text) live in `listing_secrets`, readable only by seller/admin and written only by server code — buyers never see them before payment.
+- QR duplicates are blocked by a partial unique index on `listing_secrets.qr_hash` over live/sold statuses (mirrored from listings by trigger); the app check in `verification/checks.ts` is a friendly pre-check, the index is the guarantee.
+- Verification decisions: duplicate → rejected, trust score ≥ AUTO_APPROVE_SCORE → active, else admin review; AI failure lowers the score instead of blocking.

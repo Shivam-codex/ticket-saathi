@@ -55,3 +55,19 @@ See `.env.example`.
 13. Visit /settings while signed out. You're redirected to /auth.
 14. Mobile width: the bottom nav shows and the active tab is highlighted. Footer legal links work.
 15. Security: as a buyer, inserting into listings or fee_config through the API is rejected.
+
+## Phase 3 — Selling safely
+
+- `/sell` wizard: event → seats/qty → upload ticket (private) → price paid + asking price with live cap and fair-price hint.
+- Rules engine `src/lib/listing-rules.server.ts` (tests: `src/lib/listing-rules.test.ts`).
+- Verification `src/lib/verification/*`: QR decode (PNG/JPEG), Gemini vision read (PDF/images), duplicate QR/file block, name/date/seat match, editing checks, trust score (tests: `checks.test.ts`).
+- `/my-listings`: edit price, pause/resume, cancel. `/admin/reviews`: approve/reject flagged tickets.
+- Listings hide at event start; hourly job marks them expired.
+
+### Phase 3 test checklist
+- [ ] Non-resellable event is greyed out in the wizard.
+- [ ] Asking price above the shown maximum shows the reason and disables "List ticket".
+- [ ] Clear ticket with QR goes live; uploading the same ticket again is blocked as duplicate.
+- [ ] Blurry/edited ticket lands in Admin → Ticket reviews; approve makes it live.
+- [ ] Pause hides listing from the event page; resume shows it again; cancel frees the QR.
+- [ ] Signed-in buyer cannot read another seller's ticket file.
