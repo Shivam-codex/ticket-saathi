@@ -76,6 +76,8 @@ export async function runVerification(l: ListingRow) {
     block_reason: reason,
   }).eq("id", l.id).eq("status", "draft");
 
+  if (decision === "approved") await supabaseAdmin.rpc("notify_listing_available", { p_listing_id: l.id });
+
   if (duplicate) {
     await supabaseAdmin.from("audit_logs").insert({ actor_id: null, action: "listing.duplicate_blocked", entity: "listing", entity_id: l.id, after: { qr_source: fp?.source ?? "file" } });
   }

@@ -106,6 +106,41 @@
       "when": 1795242652072,
       "tag": "0014_phase5_require_delivery_for_payout",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795243608953,
+      "tag": "0015_phase6_trust_safety_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1795243674380,
+      "tag": "0016_phase6_dispute_evidence_storage",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795243806976,
+      "tag": "0017_phase6_admin_dispute_payout",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795244325783,
+      "tag": "0018_phase6_dispute_window_start",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1795244501593,
+      "tag": "0019_phase6_report_trigger_seller_lookup",
+      "breakpoints": true
     }
   ]
 }

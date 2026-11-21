@@ -9,17 +9,19 @@ type Ctx = { supabase: typeof supabase; userId: string };
 
 const listingColumns = "id, seller_id, event_id, section, seat_info, quantity, face_value_paise, price_paise, status, verification_status, trust_score, events(id, title, category, starts_at, ends_at, image_url, is_resellable, venues(name, city, state_code, address))";
 
-async function loadListingQuote(client: typeof supabase, id: string) {
+async function loadListingQuote(client: typeof supabase, id: string, requestedQuantity?: number) {
   const { data: listing, error } = await client.from("listings").select(listingColumns).eq("id", id).eq("status", "active").maybeSingle();
   if (error) throw new Error("Could not load listing");
   if (!listing) return null;
+  const quantity = requestedQuantity ?? Math.min(listing.quantity, 6);
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 6 || quantity > listing.quantity) throw new Error("Choose between 1 and 6 available seats");
   const [fees, stats] = await Promise.all([
     client.from("fee_config").select("id, buyer_fee_bps, seller_fee_bps, gst_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
-    client.rpc("seller_public_stats", { _seller_id: listing.seller_id }),
+    client.rpc("seller_reputation", { _seller_id: listing.seller_id }),
   ]);
   if (!fees.data) throw new Error("Fees are not configured");
   const { calculateOrderQuote } = await import("@/lib/pricing.server");
-  const quote = calculateOrderQuote(Number(listing.price_paise), listing.quantity, {
+  const quote = calculateOrderQuote(Number(listing.price_paise), quantity, {
     buyerFeeBps: fees.data.buyer_fee_bps,
     sellerFeeBps: fees.data.seller_fee_bps,
     gstBps: fees.data.gst_bps,
@@ -34,20 +36,30 @@ async function loadListingQuote(client: typeof supabase, id: string) {
       averageRating: sellerStats.average_rating == null ? null : Number(sellerStats.average_rating),
       ratingCount: sellerStats.rating_count,
       completedSales: sellerStats.completed_sales,
-    } : { averageRating: null, ratingCount: 0, completedSales: 0 },
+      disputeRate: Number(sellerStats.dispute_rate),
+      isVerified: sellerStats.is_verified,
+    } : { averageRating: null, ratingCount: 0, completedSales: 0, disputeRate: 0, isVerified: false },
   };
 }
 
 export const getListingDetail = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => loadListingQuote(supabase, data.id));
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(6).optional() }).parse(d))
+  .handler(async ({ data }) => loadListingQuote(supabase, data.id, data.quantity));
+
+export const getListingQuantityQuote = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(6) }).parse(d))
+  .handler(async ({ data }) => {
+    const details = await loadListingQuote(supabase, data.id, data.quantity);
+    if (!details) throw new Error("Listing unavailable");
+    return details.quote;
+  });
 
 export const getCheckoutBootstrap = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), quantity: z.number().int().min(1).max(6).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const [details, profile] = await Promise.all([
-      loadListingQuote(context.supabase, data.id),
+      loadListingQuote(context.supabase, data.id, data.quantity),
       context.supabase.from("profiles").select("full_name, state_code, saved_upi_id, preferred_payment_method").eq("id", context.userId).maybeSingle(),
     ]);
     if (!details) return null;
@@ -65,6 +77,7 @@ export const getCheckoutBootstrap = createServerFn({ method: "GET" })
 
 const checkoutInput = z.object({
   listing_id: z.string().uuid(),
+  quantity: z.number().int().min(1).max(6),
   idempotency_key: z.string().uuid(),
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(10).max(20),
@@ -83,7 +96,7 @@ export const createCheckout = createServerFn({ method: "POST" })
     const existing = await context.supabase.from("orders").select("id, status, hold_expires_at").eq("idempotency_key", data.idempotency_key).eq("buyer_id", context.userId).maybeSingle();
     if (existing.data) return { ok: true as const, orderId: existing.data.id, status: existing.data.status, holdExpiresAt: existing.data.hold_expires_at, lockBackend: "existing" as const };
 
-    const details = await loadListingQuote(context.supabase, data.listing_id);
+    const details = await loadListingQuote(context.supabase, data.listing_id, data.quantity);
     if (!details) return { ok: false as const, reason: "unavailable" as const };
     if (details.listing.seller_id === context.userId) return { ok: false as const, reason: "own_listing" as const };
     const [{ data: profile }, { data: tax }] = await Promise.all([
@@ -91,7 +104,7 @@ export const createCheckout = createServerFn({ method: "POST" })
       context.supabase.from("tax_config").select("enabled, tcs_bps, tds_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
     ]);
     const { calculateOrderQuote } = await import("@/lib/pricing.server");
-    const q = calculateOrderQuote(Number(details.listing.price_paise), details.listing.quantity, {
+    const q = calculateOrderQuote(Number(details.listing.price_paise), data.quantity, {
       buyerFeeBps: details.feeConfig.buyer_fee_bps,
       sellerFeeBps: details.feeConfig.seller_fee_bps,
       gstBps: details.feeConfig.gst_bps,
@@ -119,7 +132,7 @@ export const createCheckout = createServerFn({ method: "POST" })
     const result = await supabaseAdmin.rpc("create_checkout_order_v2", {
       p_listing_id: data.listing_id,
       p_buyer_id: context.userId,
-      p_quantity: details.listing.quantity,
+      p_quantity: data.quantity,
       p_idempotency_key: data.idempotency_key,
       p_unit_price_paise: q.unitPricePaise,
       p_buyer_fee_paise: q.buyerFeePaise,
@@ -330,19 +343,22 @@ export const confirmOrderCompleted = createServerFn({ method: "POST" })
 
 export const reportOrderProblem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid(), reason: z.string().trim().min(5).max(2000) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid(), category: z.enum(["invalid_ticket","rejected_at_entry"]).default("invalid_ticket"), reason: z.string().trim().min(5).max(2000) }).parse(d))
   .handler(async ({ data, context }) => {
     const order = await readOrder(context, data.order_id);
     if (!order || order.buyer_id !== context.userId || !["paid", "ticket_delivered"].includes(order.status)) throw new Error("This order cannot be disputed");
+    const { canRaiseDispute } = await import("@/lib/trust-rules");
+    const startsAt = order.listings?.events?.starts_at;
+    if (!startsAt || !canRaiseDispute(startsAt)) throw new Error("Disputes open at event start and close 48 hours later");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const dispute = await supabaseAdmin.from("disputes").insert({ order_id: order.id, raised_by: context.userId, reason: data.reason }).select("id").single();
+    const dispute = await supabaseAdmin.from("disputes").insert({ order_id: order.id, raised_by: context.userId, reason: data.reason, category: data.category, prior_order_status: order.status }).select("id").single();
     if (dispute.error) throw new Error("Could not report this problem");
     const transitioned = await supabaseAdmin.rpc("transition_order", { p_order_id: order.id, p_expected: order.status as "paid" | "ticket_delivered", p_next: "disputed", p_actor_id: context.userId, p_note: "Buyer reported a problem" });
     if (transitioned.error) {
       await supabaseAdmin.from("disputes").delete().eq("id", dispute.data.id);
       throw new Error("Could not update this order");
     }
-    return { ok: true as const };
+    return { ok: true as const, disputeId: dispute.data.id };
   });
 
 export const adminRefundOrder = createServerFn({ method: "POST" })

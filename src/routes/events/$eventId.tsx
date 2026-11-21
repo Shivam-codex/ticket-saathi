@@ -5,6 +5,7 @@ import { getEvent } from "@/functions/events.functions";
 import { formatINR, imageUrl } from "@/lib/event-filters";
 import { useLiveListings } from "@/hooks/use-live-listings";
 import { Button } from "@/components/ui/button";
+import { EventAlertPanel } from "@/components/events/EventAlertPanel";
 
 const eventQuery = (id: string) => queryOptions({ queryKey: ["event", id], queryFn: () => getEvent({ data: { id } }) });
 
@@ -73,6 +74,7 @@ function EventPage() {
             </div>
           )}
         </div>
+        <EventAlertPanel eventId={e.id} />
 
         <section className="mt-8">
           <div className="flex items-center justify-between">

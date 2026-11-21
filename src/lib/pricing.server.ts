@@ -41,6 +41,7 @@ export function basisPoints(amountPaise: number, bps: number): number {
 export function calculateOrderQuote(unitPricePaise: number, quantity: number, config: FeeConfig): OrderQuote {
   integer(unitPricePaise, "unitPricePaise");
   integer(quantity, "quantity", 1);
+  if (quantity > 6) throw new Error("Group checkout is limited to 6 tickets");
   integer(config.buyerFeeBps, "buyerFeeBps");
   integer(config.sellerFeeBps, "sellerFeeBps");
   integer(config.gstBps, "gstBps");

@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/checkout/$listingId")({
-  loader: async ({ params }) => {
-    const data = await getCheckoutBootstrap({ data: { id: params.listingId } });
+  validateSearch: (search: Record<string, unknown>): { quantity: number } => ({ quantity: Math.min(6, Math.max(1, Number(search["quantity"]) || 1)) }),
+  loaderDeps: ({ search }) => ({ quantity: search.quantity }),
+  loader: async ({ params, deps }) => {
+    const data = await getCheckoutBootstrap({ data: { id: params.listingId, quantity: deps.quantity } });
     if (!data) throw notFound();
     return data;
   },
@@ -39,7 +41,7 @@ function CheckoutPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const result = await checkout({ data: { listing_id: data.listing.id, idempotency_key: key, buyer_name: name, buyer_phone: phone, buyer_upi_id: upi || undefined } });
+      const result = await checkout({ data: { listing_id: data.listing.id, quantity: data.quote.quantity, idempotency_key: key, buyer_name: name, buyer_phone: phone, buyer_upi_id: upi || undefined } });
       if (!result.ok) {
         const messages = { invalid_phone: t("checkout.invalidPhone"), invalid_upi: t("checkout.invalidUpi"), unavailable: t("checkout.unavailable"), own_listing: t("checkout.ownListing"), provider_unavailable: t("checkout.providerUnavailable") } as const;
         toast.error(messages[result.reason]);
@@ -54,7 +56,7 @@ function CheckoutPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <h1 className="text-3xl font-extrabold">{t("checkout.title")}</h1>
-      <p className="mt-1 text-muted-foreground">{data.listing.events?.title} · {data.listing.section ?? t("buy.general")} · {data.listing.quantity} {t("buy.tickets")}</p>
+      <p className="mt-1 text-muted-foreground">{data.listing.events?.title} · {data.listing.section ?? t("buy.general")} · {data.quote.quantity} {t("buy.tickets")}</p>
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
         <form onSubmit={submit} className="space-y-5 rounded-3xl border bg-card p-6">
           <div><h2 className="text-xl font-bold">{t("checkout.contact")}</h2><p className="text-sm text-muted-foreground">{t("checkout.contact.d")}</p></div>

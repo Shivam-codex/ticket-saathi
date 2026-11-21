@@ -95,9 +95,14 @@ export const createListing = createServerFn({ method: "POST" })
       seller_id: context.userId, event_id: data.event_id, section: data.section || null, seat_info: data.seat_info || null,
       quantity: data.quantity, face_value_paise: data.face_value_paise, price_paise: data.price_paise, status: "draft",
     }).select("id").single();
-    if (error) return { ok: false as const, reasons: [{ code: "SELLER_NOT_VERIFIED", message: "We couldn't create this listing. Check your seller status and try again." }] };
+    if (error) {
+      const message = error.message.includes("NEW_SELLER_DAILY_LIMIT") ? "New sellers can create up to five listings per day." : error.message.includes("SELLER_BANNED") ? "This seller account is suspended." : "We couldn't create this listing. Check your seller status and try again.";
+      return { ok: false as const, reasons: [{ code: error.message.includes("NEW_SELLER_DAILY_LIMIT") ? "DAILY_LIMIT" : "SELLER_NOT_VERIFIED", message }] };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("listing_secrets").insert({ listing_id: row.id, seller_id: context.userId, file_path: data.file_path, file_mime: data.file_mime });
+    const { recordSellerDeviceSignal } = await import("@/lib/risk.server");
+    await recordSellerDeviceSignal(context.userId, row.id).catch(() => undefined);
     return { ok: true as const, id: row.id };
   });
 
@@ -133,6 +138,10 @@ export const updateListing = createServerFn({ method: "POST" })
     const { data: l } = await context.supabase.from("listings").select("id, seller_id, event_id, section, status, is_paused, verification_status, face_value_paise, price_paise, quantity").eq("id", data.id).eq("seller_id", context.userId).maybeSingle();
     if (!l) throw new Error("Listing not found");
     if (!["draft", "active"].includes(l.status)) return { ok: false as const, message: "This listing can no longer be changed." };
+    if (data.action === "resume") {
+      const { data: current } = await context.supabase.from("listings").select("auto_hidden").eq("id", data.id).single();
+      if (current?.auto_hidden) return { ok: false as const, message: "This listing is hidden pending a trust review." };
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { evaluateListing } = await import("@/lib/listing-rules.server");
     const check = async (price: number) => {
@@ -157,6 +166,7 @@ export const updateListing = createServerFn({ method: "POST" })
     // guard against races with a sale: only update if still draft/active
     const { error } = await supabaseAdmin.from("listings").update(patch).eq("id", l.id).in("status", ["draft", "active"]);
     if (error) throw new Error("Could not update listing");
+    if (data.action === "resume") await supabaseAdmin.rpc("notify_listing_available", { p_listing_id: l.id });
     return { ok: true as const };
   });
 
@@ -173,7 +183,7 @@ export const adminReviewQueue = createServerFn({ method: "GET" })
     await assertAdmin(context);
     const { data: rows } = await context.supabase.from("listings")
       .select("id, section, seat_info, quantity, face_value_paise, price_paise, status, trust_score, block_reason, created_at, events(title, starts_at), listing_secrets(file_path, file_mime, qr_source, extracted, checks)")
-      .eq("verification_status", "review").in("status", ["draft"]).order("created_at").limit(50);
+      .eq("verification_status", "review").in("status", ["draft"]).order("trust_score", { ascending: true, nullsFirst: true }).order("created_at").limit(50);
     const out = [];
     for (const r of rows ?? []) {
       const sec = r.listing_secrets;
@@ -205,5 +215,6 @@ export const adminDecideListing = createServerFn({ method: "POST" })
     await supabaseAdmin.from("listing_secrets").update({ reviewed_by: context.userId, reviewed_at: new Date().toISOString() }).eq("listing_id", l.id);
     await supabaseAdmin.from("audit_logs").insert({ actor_id: context.userId, action: `listing.${data.decision}`, entity: "listing", entity_id: l.id, before: { verification_status: l.verification_status, status: l.status }, after: patch as never });
     await supabaseAdmin.from("notifications").insert({ user_id: l.seller_id, kind: "listing_review", title: data.decision === "approve" ? "Your listing is live" : "Your listing was rejected", body: data.decision === "approve" ? null : (data.note ?? null), link: "/my-listings" });
+    if (data.decision === "approve") await supabaseAdmin.rpc("notify_listing_available", { p_listing_id: l.id });
     return { ok: true as const };
   });

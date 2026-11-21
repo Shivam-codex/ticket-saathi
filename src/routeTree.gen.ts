@@ -15,24 +15,34 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMyListingsRouteImport } from './routes/_authenticated/my-listings'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedSellRouteImport } from './routes/_authenticated/sell'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
 import { Route as EventsEventIdRouteImport } from './routes/events/$eventId'
+import { Route as GateOrderIdRouteImport } from './routes/gate.$orderId'
 import { Route as LegalCookiesRouteImport } from './routes/legal/cookies'
 import { Route as LegalGrievanceRouteImport } from './routes/legal/grievance'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalRefundPolicyRouteImport } from './routes/legal/refund-policy'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
 import { Route as ListingsListingIdRouteImport } from './routes/listings/$listingId'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminGrievancesRouteImport } from './routes/_authenticated/admin.grievances'
 import { Route as AuthenticatedAdminReconciliationRouteImport } from './routes/_authenticated/admin.reconciliation'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated/admin.reviews'
+import { Route as AuthenticatedAdminRulesRouteImport } from './routes/_authenticated/admin.rules'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedCheckoutListingIdRouteImport } from './routes/_authenticated/checkout.$listingId'
 import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as AuthenticatedSellerEarningsRouteImport } from './routes/_authenticated/seller.earnings'
+import { Route as ApiPublicAssistantRouteImport } from './routes/api/public/assistant'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
 import { Route as AuthenticatedOrdersOrderIdInvoiceRouteImport } from './routes/_authenticated/orders.$orderId_.invoice'
 import { Route as ApiPublicJobsProcessPaymentsRouteImport } from './routes/api/public/jobs/process-payments'
@@ -66,6 +76,12 @@ const AuthenticatedMyListingsRoute = AuthenticatedMyListingsRouteImport.update({
   path: '/my-listings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -81,6 +97,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -89,6 +110,11 @@ const EventsIndexRoute = EventsIndexRouteImport.update({
 const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/events/$eventId',
   path: '/events/$eventId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GateOrderIdRoute = GateOrderIdRouteImport.update({
+  id: '/gate/$orderId',
+  path: '/gate/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalCookiesRoute = LegalCookiesRouteImport.update({
@@ -121,10 +147,27 @@ const ListingsListingIdRoute = ListingsListingIdRouteImport.update({
   path: '/listings/$listingId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminDisputesRoute =
+  AuthenticatedAdminDisputesRouteImport.update({
+    id: '/disputes',
+    path: '/disputes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminEventsRoute =
   AuthenticatedAdminEventsRouteImport.update({
     id: '/events',
     path: '/events',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminGrievancesRoute =
+  AuthenticatedAdminGrievancesRouteImport.update({
+    id: '/grievances',
+    path: '/grievances',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminReconciliationRoute =
@@ -133,12 +176,28 @@ const AuthenticatedAdminReconciliationRoute =
     path: '/reconciliation',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReviewsRoute =
   AuthenticatedAdminReviewsRouteImport.update({
     id: '/reviews',
     path: '/reviews',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminRulesRoute = AuthenticatedAdminRulesRouteImport.update({
+  id: '/rules',
+  path: '/rules',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedCheckoutListingIdRoute =
   AuthenticatedCheckoutListingIdRouteImport.update({
     id: '/checkout/$listingId',
@@ -163,6 +222,11 @@ const AuthenticatedSellerEarningsRoute =
     path: '/seller/earnings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicAssistantRoute = ApiPublicAssistantRouteImport.update({
+  id: '/api/public/assistant',
+  path: '/api/public/assistant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRazorpayWebhookRoute =
   ApiPublicRazorpayWebhookRouteImport.update({
     id: '/api/public/razorpay-webhook',
@@ -188,10 +252,13 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/my-listings': typeof AuthenticatedMyListingsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/sell': typeof AuthenticatedSellRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/gate/$orderId': typeof GateOrderIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -199,13 +266,20 @@ export interface FileRoutesByFullPath {
   '/legal/terms': typeof LegalTermsRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/events/': typeof EventsIndexRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
   '/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/admin/rules': typeof AuthenticatedAdminRulesRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/seller/earnings': typeof AuthenticatedSellerEarningsRoute
+  '/api/public/assistant': typeof ApiPublicAssistantRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
   '/orders/$orderId/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
   '/api/public/jobs/process-payments': typeof ApiPublicJobsProcessPaymentsRoute
@@ -214,12 +288,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/search': typeof SearchRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/my-listings': typeof AuthenticatedMyListingsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/sell': typeof AuthenticatedSellRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/support': typeof AuthenticatedSupportRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/gate/$orderId': typeof GateOrderIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -227,13 +303,20 @@ export interface FileRoutesByTo {
   '/legal/terms': typeof LegalTermsRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/events': typeof EventsIndexRoute
+  '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
   '/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/admin/rules': typeof AuthenticatedAdminRulesRoute
+  '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/seller/earnings': typeof AuthenticatedSellerEarningsRoute
+  '/api/public/assistant': typeof ApiPublicAssistantRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
   '/orders/$orderId/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
   '/api/public/jobs/process-payments': typeof ApiPublicJobsProcessPaymentsRoute
@@ -246,10 +329,13 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/my-listings': typeof AuthenticatedMyListingsRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/sell': typeof AuthenticatedSellRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/events/$eventId': typeof EventsEventIdRoute
+  '/gate/$orderId': typeof GateOrderIdRoute
   '/legal/cookies': typeof LegalCookiesRoute
   '/legal/grievance': typeof LegalGrievanceRoute
   '/legal/privacy': typeof LegalPrivacyRoute
@@ -257,13 +343,20 @@ export interface FileRoutesById {
   '/legal/terms': typeof LegalTermsRoute
   '/listings/$listingId': typeof ListingsListingIdRoute
   '/events/': typeof EventsIndexRoute
+  '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
+  '/_authenticated/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
   '/_authenticated/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/_authenticated/admin/rules': typeof AuthenticatedAdminRulesRoute
+  '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/seller/earnings': typeof AuthenticatedSellerEarningsRoute
+  '/api/public/assistant': typeof ApiPublicAssistantRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
   '/_authenticated/orders/$orderId_/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
   '/api/public/jobs/process-payments': typeof ApiPublicJobsProcessPaymentsRoute
@@ -276,10 +369,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/admin'
     | '/my-listings'
+    | '/notifications'
     | '/onboarding'
     | '/sell'
     | '/settings'
+    | '/support'
     | '/events/$eventId'
+    | '/gate/$orderId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
@@ -287,13 +383,20 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/listings/$listingId'
     | '/events/'
+    | '/admin/disputes'
     | '/admin/events'
+    | '/admin/grievances'
     | '/admin/reconciliation'
+    | '/admin/reports'
     | '/admin/reviews'
+    | '/admin/rules'
+    | '/admin/users'
     | '/checkout/$listingId'
     | '/orders/$orderId'
     | '/seller/earnings'
+    | '/api/public/assistant'
     | '/api/public/razorpay-webhook'
+    | '/admin/'
     | '/orders/'
     | '/orders/$orderId/invoice'
     | '/api/public/jobs/process-payments'
@@ -302,12 +405,14 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/search'
-    | '/admin'
     | '/my-listings'
+    | '/notifications'
     | '/onboarding'
     | '/sell'
     | '/settings'
+    | '/support'
     | '/events/$eventId'
+    | '/gate/$orderId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
@@ -315,13 +420,20 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/listings/$listingId'
     | '/events'
+    | '/admin/disputes'
     | '/admin/events'
+    | '/admin/grievances'
     | '/admin/reconciliation'
+    | '/admin/reports'
     | '/admin/reviews'
+    | '/admin/rules'
+    | '/admin/users'
     | '/checkout/$listingId'
     | '/orders/$orderId'
     | '/seller/earnings'
+    | '/api/public/assistant'
     | '/api/public/razorpay-webhook'
+    | '/admin'
     | '/orders'
     | '/orders/$orderId/invoice'
     | '/api/public/jobs/process-payments'
@@ -333,10 +445,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/_authenticated/admin'
     | '/_authenticated/my-listings'
+    | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
     | '/_authenticated/sell'
     | '/_authenticated/settings'
+    | '/_authenticated/support'
     | '/events/$eventId'
+    | '/gate/$orderId'
     | '/legal/cookies'
     | '/legal/grievance'
     | '/legal/privacy'
@@ -344,13 +459,20 @@ export interface FileRouteTypes {
     | '/legal/terms'
     | '/listings/$listingId'
     | '/events/'
+    | '/_authenticated/admin/disputes'
     | '/_authenticated/admin/events'
+    | '/_authenticated/admin/grievances'
     | '/_authenticated/admin/reconciliation'
+    | '/_authenticated/admin/reports'
     | '/_authenticated/admin/reviews'
+    | '/_authenticated/admin/rules'
+    | '/_authenticated/admin/users'
     | '/_authenticated/checkout/$listingId'
     | '/_authenticated/orders/$orderId'
     | '/_authenticated/seller/earnings'
+    | '/api/public/assistant'
     | '/api/public/razorpay-webhook'
+    | '/_authenticated/admin/'
     | '/_authenticated/orders/'
     | '/_authenticated/orders/$orderId_/invoice'
     | '/api/public/jobs/process-payments'
@@ -362,6 +484,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   SearchRoute: typeof SearchRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
+  GateOrderIdRoute: typeof GateOrderIdRoute
   LegalCookiesRoute: typeof LegalCookiesRoute
   LegalGrievanceRoute: typeof LegalGrievanceRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
@@ -369,6 +492,7 @@ export interface RootRouteChildren {
   LegalTermsRoute: typeof LegalTermsRoute
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  ApiPublicAssistantRoute: typeof ApiPublicAssistantRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
   ApiPublicJobsProcessPaymentsRoute: typeof ApiPublicJobsProcessPaymentsRoute
 }
@@ -417,6 +541,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyListingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -438,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
@@ -450,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/events/$eventId'
       fullPath: '/events/$eventId'
       preLoaderRoute: typeof EventsEventIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gate/$orderId': {
+      id: '/gate/$orderId'
+      path: '/gate/$orderId'
+      fullPath: '/gate/$orderId'
+      preLoaderRoute: typeof GateOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/cookies': {
@@ -494,11 +639,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingsListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/disputes': {
+      id: '/_authenticated/admin/disputes'
+      path: '/disputes'
+      fullPath: '/admin/disputes'
+      preLoaderRoute: typeof AuthenticatedAdminDisputesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/events': {
       id: '/_authenticated/admin/events'
       path: '/events'
       fullPath: '/admin/events'
       preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/grievances': {
+      id: '/_authenticated/admin/grievances'
+      path: '/grievances'
+      fullPath: '/admin/grievances'
+      preLoaderRoute: typeof AuthenticatedAdminGrievancesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/reconciliation': {
@@ -508,11 +674,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReconciliationRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/reviews': {
       id: '/_authenticated/admin/reviews'
       path: '/reviews'
       fullPath: '/admin/reviews'
       preLoaderRoute: typeof AuthenticatedAdminReviewsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/rules': {
+      id: '/_authenticated/admin/rules'
+      path: '/rules'
+      fullPath: '/admin/rules'
+      preLoaderRoute: typeof AuthenticatedAdminRulesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/checkout/$listingId': {
@@ -543,6 +730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSellerEarningsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/assistant': {
+      id: '/api/public/assistant'
+      path: '/api/public/assistant'
+      fullPath: '/api/public/assistant'
+      preLoaderRoute: typeof ApiPublicAssistantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/razorpay-webhook': {
       id: '/api/public/razorpay-webhook'
       path: '/api/public/razorpay-webhook'
@@ -568,15 +762,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
+  AuthenticatedAdminGrievancesRoute: typeof AuthenticatedAdminGrievancesRoute
   AuthenticatedAdminReconciliationRoute: typeof AuthenticatedAdminReconciliationRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminReviewsRoute: typeof AuthenticatedAdminReviewsRoute
+  AuthenticatedAdminRulesRoute: typeof AuthenticatedAdminRulesRoute
+  AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
+  AuthenticatedAdminGrievancesRoute: AuthenticatedAdminGrievancesRoute,
   AuthenticatedAdminReconciliationRoute: AuthenticatedAdminReconciliationRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminReviewsRoute: AuthenticatedAdminReviewsRoute,
+  AuthenticatedAdminRulesRoute: AuthenticatedAdminRulesRoute,
+  AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -585,9 +791,11 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMyListingsRoute: typeof AuthenticatedMyListingsRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSellRoute: typeof AuthenticatedSellRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedCheckoutListingIdRoute: typeof AuthenticatedCheckoutListingIdRoute
   AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
   AuthenticatedSellerEarningsRoute: typeof AuthenticatedSellerEarningsRoute
@@ -598,9 +806,11 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMyListingsRoute: AuthenticatedMyListingsRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSellRoute: AuthenticatedSellRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedCheckoutListingIdRoute: AuthenticatedCheckoutListingIdRoute,
   AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
   AuthenticatedSellerEarningsRoute: AuthenticatedSellerEarningsRoute,
@@ -618,6 +828,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   SearchRoute: SearchRoute,
   EventsEventIdRoute: EventsEventIdRoute,
+  GateOrderIdRoute: GateOrderIdRoute,
   LegalCookiesRoute: LegalCookiesRoute,
   LegalGrievanceRoute: LegalGrievanceRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
@@ -625,6 +836,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalTermsRoute: LegalTermsRoute,
   ListingsListingIdRoute: ListingsListingIdRoute,
   EventsIndexRoute: EventsIndexRoute,
+  ApiPublicAssistantRoute: ApiPublicAssistantRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
   ApiPublicJobsProcessPaymentsRoute: ApiPublicJobsProcessPaymentsRoute,
 }

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { Moon, Search, Sun, Ticket, Globe, ReceiptText } from "lucide-react";
+import { Moon, Search, Sun, Ticket, Globe, ReceiptText, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -49,6 +49,7 @@ export function SiteHeader() {
           </Button>
           {user ? (
             <>
+              <Button asChild variant="ghost" size="icon" aria-label={t("nav.notifications")}><Link to="/notifications"><Bell className="h-5 w-5" /></Link></Button>
               <Button asChild variant="ghost" size="icon" aria-label={t("nav.orders")}><Link to="/orders"><ReceiptText className="h-5 w-5" /></Link></Button>
               <Button asChild variant="outline" className="hidden sm:inline-flex"><Link to="/settings">{t("nav.account")}</Link></Button>
             </>

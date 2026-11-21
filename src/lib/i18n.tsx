@@ -236,6 +236,17 @@ const en = {
   "footer.legal": "Legal", "footer.tag": "India's fair ticket resale marketplace.",
   "legal.terms": "Terms of Use", "legal.refund": "Refund & Buyer Protection", "legal.privacy": "Privacy Policy",
   "legal.grievance": "Grievance Officer", "legal.cookies": "Cookie Notice",
+  "nav.notifications": "Notifications", "nav.support": "Support & grievances", "common.close": "Close", "common.comingSoon": "Coming soon",
+  "report.cta": "Report", "group.note": "Buy 2–6 tickets from this seller in one checkout. Adjacent seating is guaranteed only when the seller's seat details confirm it.",
+  "dispute.fileSize": "Evidence must be under 10 MB", "dispute.fileType": "Use a PDF, PNG or JPG", "dispute.uploadFailed": "Could not upload evidence", "dispute.responseSaved": "Seller response saved", "dispute.evidence": "Evidence", "dispute.window": "Dispute window", "dispute.evidenceUntil": "Evidence deadline", "dispute.sellerResponse": "Seller response", "dispute.decision": "Decision", "dispute.respondSubmit": "Submit seller response",
+  "buy.quantity": "Number of tickets", "buy.verifiedSeller": "Verified seller", "buy.disputeRate": "dispute rate",
+  "sellback.title": "Sell-back Guarantee (coming later)", "sellback.d": "An optional paid add-on is planned. It is not included or charged for today.",
+  "report.title": "Report this listing", "report.fake": "Suspicious or fake ticket", "report.prohibited": "Resale not allowed", "report.price": "Incorrect price or details", "report.other": "Other", "report.details": "Extra details (optional)", "report.submit": "Submit report", "report.saved": "Report submitted for review", "report.reported": "Listing reported",
+  "dispute.title": "Ticket dispute", "dispute.d": "Raise a dispute from event start until 48 hours afterwards. Evidence and seller responses are reviewed before a decision.", "dispute.invalid": "Invalid or rejected ticket", "dispute.other": "Other ticket problem", "dispute.upload": "Upload evidence", "dispute.attached": "Evidence attached", "dispute.responseTitle": "Seller response", "dispute.respond": "Send response", "dispute.responseSent": "Response sent for review", "dispute.closed": "This dispute is closed.",
+  "alerts.title": "Price alerts", "alerts.d": "Follow this event and optionally set a maximum price.", "alerts.signIn": "Sign in to set alerts", "alerts.saved": "Price alert saved", "alerts.maxPrice": "Maximum price (₹)", "alerts.follow": "Follow event",
+  "waitlist.title": "Ticket waitlist", "waitlist.join": "Join waitlist", "waitlist.saved": "You are on the waitlist",
+  "gate.prepare": "Prepare offline gate pass", "gate.preparing": "Saving on this device…", "gate.prepareFailed": "Could not save the offline pass. Check your connection and storage.",
+  "assistant.open": "PassOn Guide", "assistant.title": "PassOn Guide", "assistant.ai": "Gemini AI · temporary chat", "assistant.curated": "Curated instant help", "assistant.welcome": "How can I help with tickets?", "assistant.safety": "No legal advice or refund promises. Order decisions go to support.", "assistant.placeholder": "Ask about fees, buying or selling…", "assistant.temporary": "This conversation disappears when you leave; it is not saved.", "assistant.thinking": "PassOn Guide is thinking…", "assistant.fallback": "AI is unavailable, so curated help answered instead.",
 };
 type Dict = Record<keyof typeof en, string>;
 
@@ -468,6 +479,17 @@ const hi: Dict = {
   "footer.legal": "कानूनी", "footer.tag": "भारत का निष्पक्ष टिकट रीसेल बाज़ार।",
   "legal.terms": "उपयोग की शर्तें", "legal.refund": "रिफ़ंड और खरीदार सुरक्षा", "legal.privacy": "गोपनीयता नीति",
   "legal.grievance": "शिकायत अधिकारी", "legal.cookies": "कुकी सूचना",
+  "nav.notifications": "सूचनाएँ", "nav.support": "सहायता और शिकायतें", "common.close": "बंद करें", "common.comingSoon": "जल्द आएगा",
+  "report.cta": "रिपोर्ट", "group.note": "इस विक्रेता से 2–6 टिकट एक चेकआउट में खरीदें। पास की सीटों की गारंटी तभी है जब विक्रेता के सीट विवरण से पुष्टि हो।",
+  "dispute.fileSize": "सबूत 10 MB से छोटा होना चाहिए", "dispute.fileType": "PDF, PNG या JPG उपयोग करें", "dispute.uploadFailed": "सबूत अपलोड नहीं हो सका", "dispute.responseSaved": "विक्रेता का जवाब सेव हुआ", "dispute.evidence": "सबूत", "dispute.window": "विवाद अवधि", "dispute.evidenceUntil": "सबूत की अंतिम तारीख", "dispute.sellerResponse": "विक्रेता का जवाब", "dispute.decision": "निर्णय", "dispute.respondSubmit": "विक्रेता जवाब भेजें",
+  "buy.quantity": "टिकटों की संख्या", "buy.verifiedSeller": "सत्यापित विक्रेता", "buy.disputeRate": "विवाद दर",
+  "sellback.title": "Sell-back Guarantee (बाद में)", "sellback.d": "एक वैकल्पिक सशुल्क सुविधा की योजना है। आज इसका शुल्क नहीं लिया जाता और यह शामिल नहीं है।",
+  "report.title": "यह लिस्टिंग रिपोर्ट करें", "report.fake": "संदिग्ध या नकली टिकट", "report.prohibited": "रीसेल की अनुमति नहीं", "report.price": "गलत कीमत या विवरण", "report.other": "अन्य", "report.details": "अतिरिक्त विवरण (वैकल्पिक)", "report.submit": "रिपोर्ट भेजें", "report.saved": "रिपोर्ट समीक्षा के लिए भेजी गई", "report.reported": "लिस्टिंग रिपोर्ट हुई",
+  "dispute.title": "टिकट विवाद", "dispute.d": "इवेंट शुरू होने से 48 घंटे बाद तक विवाद दर्ज करें। निर्णय से पहले सबूत और विक्रेता के जवाब की समीक्षा होगी।", "dispute.invalid": "अमान्य या अस्वीकृत टिकट", "dispute.other": "टिकट की अन्य समस्या", "dispute.upload": "सबूत अपलोड करें", "dispute.attached": "सबूत जोड़ा गया", "dispute.responseTitle": "विक्रेता का जवाब", "dispute.respond": "जवाब भेजें", "dispute.responseSent": "जवाब समीक्षा के लिए भेजा गया", "dispute.closed": "यह विवाद बंद है।",
+  "alerts.title": "कीमत अलर्ट", "alerts.d": "इवेंट फॉलो करें और चाहें तो अधिकतम कीमत तय करें।", "alerts.signIn": "अलर्ट के लिए साइन इन करें", "alerts.saved": "कीमत अलर्ट सेव हुआ", "alerts.maxPrice": "अधिकतम कीमत (₹)", "alerts.follow": "इवेंट फॉलो करें",
+  "waitlist.title": "टिकट प्रतीक्षा सूची", "waitlist.join": "प्रतीक्षा सूची में जुड़ें", "waitlist.saved": "आप प्रतीक्षा सूची में हैं",
+  "gate.prepare": "ऑफ़लाइन गेट पास तैयार करें", "gate.preparing": "इस डिवाइस पर सेव हो रहा है…", "gate.prepareFailed": "ऑफ़लाइन पास सेव नहीं हो सका। कनेक्शन और स्टोरेज जाँचें।",
+  "assistant.open": "PassOn गाइड", "assistant.title": "PassOn गाइड", "assistant.ai": "Gemini AI · अस्थायी चैट", "assistant.curated": "तैयार तुरंत सहायता", "assistant.welcome": "टिकटों में कैसे मदद करूँ?", "assistant.safety": "कानूनी सलाह या रिफंड का वादा नहीं। ऑर्डर निर्णय के लिए सहायता लें।", "assistant.placeholder": "शुल्क, खरीद या बिक्री के बारे में पूछें…", "assistant.temporary": "यह बातचीत आपके जाने पर मिट जाएगी; इसे सेव नहीं किया जाता।", "assistant.thinking": "PassOn गाइड सोच रहा है…", "assistant.fallback": "AI उपलब्ध नहीं है, इसलिए तैयार सहायता ने जवाब दिया।",
 };
 
 const mr: Dict = {
@@ -699,6 +721,17 @@ const mr: Dict = {
   "footer.legal": "कायदेशीर", "footer.tag": "भारताचा न्याय्य तिकीट पुनर्विक्री बाजार.",
   "legal.terms": "वापराच्या अटी", "legal.refund": "परतावा आणि खरेदीदार संरक्षण", "legal.privacy": "गोपनीयता धोरण",
   "legal.grievance": "तक्रार अधिकारी", "legal.cookies": "कुकी सूचना",
+  "nav.notifications": "सूचना", "nav.support": "मदत आणि तक्रारी", "common.close": "बंद करा", "common.comingSoon": "लवकरच येईल",
+  "report.cta": "तक्रार", "group.note": "या विक्रेत्याकडून 2–6 तिकिटे एका चेकआउटमध्ये खरेदी करा. विक्रेत्याच्या आसन तपशीलातून पुष्टी झाल्यावरच शेजारच्या आसनांची हमी आहे.",
+  "dispute.fileSize": "पुरावा 10 MB पेक्षा लहान असावा", "dispute.fileType": "PDF, PNG किंवा JPG वापरा", "dispute.uploadFailed": "पुरावा अपलोड झाला नाही", "dispute.responseSaved": "विक्रेत्याचे उत्तर जतन झाले", "dispute.evidence": "पुरावा", "dispute.window": "वाद कालावधी", "dispute.evidenceUntil": "पुरावा अंतिम वेळ", "dispute.sellerResponse": "विक्रेत्याचे उत्तर", "dispute.decision": "निर्णय", "dispute.respondSubmit": "विक्रेत्याचे उत्तर पाठवा",
+  "buy.quantity": "तिकिटांची संख्या", "buy.verifiedSeller": "पडताळलेला विक्रेता", "buy.disputeRate": "वाद दर",
+  "sellback.title": "Sell-back Guarantee (नंतर)", "sellback.d": "पर्यायी सशुल्क सुविधेची योजना आहे. आज ती समाविष्ट नाही किंवा शुल्क आकारले जात नाही.",
+  "report.title": "ही लिस्टिंग तक्रार करा", "report.fake": "संशयास्पद किंवा बनावट तिकीट", "report.prohibited": "पुनर्विक्रीला परवानगी नाही", "report.price": "चुकीची किंमत किंवा तपशील", "report.other": "इतर", "report.details": "अतिरिक्त तपशील (ऐच्छिक)", "report.submit": "तक्रार पाठवा", "report.saved": "तक्रार तपासणीसाठी पाठवली", "report.reported": "लिस्टिंग तक्रार केली",
+  "dispute.title": "तिकीट वाद", "dispute.d": "इव्हेंट सुरू झाल्यापासून 48 तासांपर्यंत वाद नोंदवा. निर्णयापूर्वी पुरावा आणि विक्रेत्याच्या उत्तराची तपासणी होईल.", "dispute.invalid": "अवैध किंवा नाकारलेले तिकीट", "dispute.other": "तिकिटाची इतर समस्या", "dispute.upload": "पुरावा अपलोड करा", "dispute.attached": "पुरावा जोडला", "dispute.responseTitle": "विक्रेत्याचे उत्तर", "dispute.respond": "उत्तर पाठवा", "dispute.responseSent": "उत्तर तपासणीसाठी पाठवले", "dispute.closed": "हा वाद बंद आहे.",
+  "alerts.title": "किंमत सूचना", "alerts.d": "इव्हेंट फॉलो करा आणि हवे असल्यास कमाल किंमत ठरवा.", "alerts.signIn": "सूचनांसाठी साइन इन करा", "alerts.saved": "किंमत सूचना जतन झाली", "alerts.maxPrice": "कमाल किंमत (₹)", "alerts.follow": "इव्हेंट फॉलो करा",
+  "waitlist.title": "तिकीट प्रतीक्षा यादी", "waitlist.join": "प्रतीक्षा यादीत सहभागी व्हा", "waitlist.saved": "तुम्ही प्रतीक्षा यादीत आहात",
+  "gate.prepare": "ऑफलाइन गेट पास तयार करा", "gate.preparing": "या उपकरणावर जतन होत आहे…", "gate.prepareFailed": "ऑफलाइन पास जतन झाला नाही. कनेक्शन आणि स्टोरेज तपासा.",
+  "assistant.open": "PassOn मार्गदर्शक", "assistant.title": "PassOn मार्गदर्शक", "assistant.ai": "Gemini AI · तात्पुरती चॅट", "assistant.curated": "तयार त्वरित मदत", "assistant.welcome": "तिकिटांबाबत कशी मदत करू?", "assistant.safety": "कायदेशीर सल्ला किंवा परताव्याची हमी नाही. ऑर्डर निर्णयांसाठी मदत घ्या.", "assistant.placeholder": "शुल्क, खरेदी किंवा विक्रीबद्दल विचारा…", "assistant.temporary": "तुम्ही गेल्यावर हे संभाषण निघून जाईल; ते जतन केले जात नाही.", "assistant.thinking": "PassOn मार्गदर्शक विचार करत आहे…", "assistant.fallback": "AI उपलब्ध नाही, म्हणून तयार मदतीने उत्तर दिले.",
 };
 
 export const dictionaries: Record<Lang, Dict> = { en, hi, mr };

@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { HelpWidget } from "@/components/assistant/HelpWidget";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -101,6 +102,7 @@ function RootComponent() {
             <main className="flex-1"><Outlet /></main>
             <SiteFooter />
             <BottomNav />
+            <HelpWidget />
           </div>
           <Toaster richColors position="top-center" />
         </I18nProvider>

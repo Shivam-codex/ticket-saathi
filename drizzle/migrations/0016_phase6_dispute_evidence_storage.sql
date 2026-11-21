@@ -1,0 +1,4 @@
+create policy "buyer uploads dispute evidence" on storage.objects for insert to authenticated
+with check (bucket_id = 'dispute-evidence' and (storage.foldername(name))[2] = auth.uid()::text and exists (select 1 from public.disputes d join public.orders o on o.id = d.order_id where d.id::text = (storage.foldername(name))[1] and o.buyer_id = auth.uid()));
+create policy "parties read dispute evidence" on storage.objects for select to authenticated
+using (bucket_id = 'dispute-evidence' and (public.has_role(auth.uid(),'admin') or exists (select 1 from public.disputes d join public.orders o on o.id = d.order_id where d.id::text = (storage.foldername(name))[1] and auth.uid() in (o.buyer_id,o.seller_id))));

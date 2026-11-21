@@ -90,39 +90,70 @@ export type Database = {
       }
       disputes: {
         Row: {
+          category: string
           created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          evidence_deadline_at: string | null
           evidence_paths: string[]
           id: string
           order_id: string
+          prior_order_status: string | null
           raised_by: string | null
           reason: string
           resolution_note: string | null
+          response_due_at: string | null
+          seller_responded_at: string | null
+          seller_response: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          category?: string
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          evidence_deadline_at?: string | null
           evidence_paths?: string[]
           id?: string
           order_id: string
+          prior_order_status?: string | null
           raised_by?: string | null
           reason: string
           resolution_note?: string | null
+          response_due_at?: string | null
+          seller_responded_at?: string | null
+          seller_response?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          category?: string
           created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          evidence_deadline_at?: string | null
           evidence_paths?: string[]
           id?: string
           order_id?: string
+          prior_order_status?: string | null
           raised_by?: string | null
           reason?: string
           resolution_note?: string | null
+          response_due_at?: string | null
+          seller_responded_at?: string | null
+          seller_response?: string | null
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "disputes_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "disputes_order_id_fkey"
             columns: ["order_id"]
@@ -133,6 +164,52 @@ export type Database = {
           {
             foreignKeyName: "disputes_raised_by_fkey"
             columns: ["raised_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_follows: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          max_price_paise: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          max_price_paise?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          max_price_paise?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_follows_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_follows_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_follows_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -208,6 +285,27 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          description: string
+          enabled: boolean
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string
+          enabled?: boolean
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string
+          enabled?: boolean
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fee_config: {
         Row: {
           buyer_fee_bps: number
@@ -237,6 +335,60 @@ export type Database = {
           seller_fee_bps?: number
         }
         Relationships: []
+      }
+      grievance_tickets: {
+        Row: {
+          created_at: string
+          details: string
+          due_at: string
+          id: string
+          order_id: string | null
+          resolution_note: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details: string
+          due_at?: string
+          id?: string
+          order_id?: string | null
+          resolution_note?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          due_at?: string
+          id?: string
+          order_id?: string | null
+          resolution_note?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grievance_tickets_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grievance_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ledger_entries: {
         Row: {
@@ -301,6 +453,106 @@ export type Database = {
           {
             foreignKeyName: "ledger_entries_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          listing_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          listing_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          listing_id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_reports_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listing_risk_signals: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          listing_id: string | null
+          seller_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          listing_id?: string | null
+          seller_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          listing_id?: string | null
+          seller_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_risk_signals_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_risk_signals_seller_id_fkey"
+            columns: ["seller_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -375,6 +627,7 @@ export type Database = {
       }
       listings: {
         Row: {
+          auto_hidden: boolean
           block_reason: string | null
           created_at: string
           event_id: string
@@ -384,6 +637,7 @@ export type Database = {
           is_paused: boolean
           price_paise: number
           quantity: number
+          report_count: number
           seat_info: string | null
           section: string | null
           seller_id: string
@@ -394,6 +648,7 @@ export type Database = {
           verification_status: string
         }
         Insert: {
+          auto_hidden?: boolean
           block_reason?: string | null
           created_at?: string
           event_id: string
@@ -403,6 +658,7 @@ export type Database = {
           is_paused?: boolean
           price_paise: number
           quantity?: number
+          report_count?: number
           seat_info?: string | null
           section?: string | null
           seller_id: string
@@ -413,6 +669,7 @@ export type Database = {
           verification_status?: string
         }
         Update: {
+          auto_hidden?: boolean
           block_reason?: string | null
           created_at?: string
           event_id?: string
@@ -422,6 +679,7 @@ export type Database = {
           is_paused?: boolean
           price_paise?: number
           quantity?: number
+          report_count?: number
           seat_info?: string | null
           section?: string | null
           seller_id?: string
@@ -844,6 +1102,8 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_banned: boolean
+          is_verified: boolean
           payout_account_holder: string | null
           payout_bank_account: string | null
           payout_bank_ifsc: string | null
@@ -861,6 +1121,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_banned?: boolean
+          is_verified?: boolean
           payout_account_holder?: string | null
           payout_bank_account?: string | null
           payout_bank_ifsc?: string | null
@@ -878,6 +1140,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_banned?: boolean
+          is_verified?: boolean
           payout_account_holder?: string | null
           payout_bank_account?: string | null
           payout_bank_ifsc?: string | null
@@ -939,6 +1203,35 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_device_signals: {
+        Row: {
+          created_at: string
+          device_hash: string
+          id: string
+          seller_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_hash: string
+          id?: string
+          seller_id: string
+        }
+        Update: {
+          created_at?: string
+          device_hash?: string
+          id?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_device_signals_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1069,6 +1362,100 @@ export type Database = {
           state_code?: string
         }
         Relationships: []
+      }
+      waitlist_entries: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          max_price_paise: number
+          quantity: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          max_price_paise: number
+          quantity?: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          max_price_paise?: number
+          quantity?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_entries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "event_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_entries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waitlist_offers: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          listing_id: string
+          status: string
+          waitlist_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          listing_id: string
+          status?: string
+          waitlist_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          listing_id?: string
+          status?: string
+          waitlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_offers_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: true
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_offers_waitlist_id_fkey"
+            columns: ["waitlist_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_entries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -1359,6 +1746,10 @@ export type Database = {
         Returns: boolean
       }
       is_seller_ready: { Args: { _user_id: string }; Returns: boolean }
+      notify_listing_available: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
       record_late_refunded_payment: {
         Args: {
           p_actor_id: string
@@ -1572,6 +1963,17 @@ export type Database = {
         Returns: {
           average_rating: number
           completed_sales: number
+          rating_count: number
+        }[]
+      }
+      seller_reputation: {
+        Args: { _seller_id: string }
+        Returns: {
+          average_rating: number
+          completed_sales: number
+          dispute_count: number
+          dispute_rate: number
+          is_verified: boolean
           rating_count: number
         }[]
       }

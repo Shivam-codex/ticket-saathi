@@ -9,6 +9,7 @@ export function SiteFooter() {
     { to: "/legal/privacy", label: t("legal.privacy") },
     { to: "/legal/grievance", label: t("legal.grievance") },
     { to: "/legal/cookies", label: t("legal.cookies") },
+    { to: "/support", label: t("nav.support") },
   ] as const;
   return (
     <footer className="mt-16 border-t bg-ink text-ink-foreground">

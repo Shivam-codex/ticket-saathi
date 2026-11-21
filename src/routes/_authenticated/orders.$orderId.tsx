@@ -4,8 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import QRCode from "react-qr-code";
 import { CheckCircle2, Download, FileText, QrCode, ShieldCheck, Smartphone, Star } from "lucide-react";
 import { toast } from "sonner";
-import { cancelCheckout, completeMockPayment, confirmOrderCompleted, confirmRazorpayPayment, getMockPaymentSession, getOrder, reportOrderProblem, reviewSeller, startRazorpayPayment } from "@/functions/orders.functions";
+import { cancelCheckout, completeMockPayment, confirmOrderCompleted, confirmRazorpayPayment, getMockPaymentSession, getOrder, reviewSeller, startRazorpayPayment } from "@/functions/orders.functions";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
+import { DisputePanel } from "@/components/trust/DisputePanel";
+import { GatePassActions } from "@/components/orders/GatePassActions";
+import { canRaiseDispute } from "@/lib/trust-rules";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/event-filters";
@@ -51,13 +54,10 @@ function OrderPage() {
   const confirmRazorpayFn = useServerFn(confirmRazorpayPayment);
   const cancelFn = useServerFn(cancelCheckout);
   const completeFn = useServerFn(confirmOrderCompleted);
-  const disputeFn = useServerFn(reportOrderProblem);
   const reviewFn = useServerFn(reviewSeller);
   const [session, setSession] = useState<Awaited<ReturnType<typeof getMockPaymentSession>> | null>(null);
   const [busy, setBusy] = useState(false);
   const [seconds, setSeconds] = useState(() => order.hold_expires_at ? Math.max(0, Math.floor((new Date(order.hold_expires_at).getTime() - Date.now()) / 1000)) : 0);
-  const [disputing, setDisputing] = useState(false);
-  const [reason, setReason] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
@@ -153,12 +153,12 @@ function OrderPage() {
             <Button variant="ghost" disabled={busy} onClick={() => action(() => cancelFn({ data: { order_id: order.id } }), t("pay.released"))} className="mt-3 w-full">{t("pay.cancel")}</Button>
           </section>}
 
-          {ticket && <section className="rounded-3xl border border-success bg-card p-6"><h2 className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 className="h-5 w-5" />{t("delivery.title")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("delivery.d")}</p><Button asChild className="mt-4"><a href={ticket.url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" />{t("delivery.open")}</a></Button><p className="mt-2 text-xs text-muted-foreground">{t("delivery.expiry")}</p></section>}
+          {ticket && <section className="rounded-3xl border border-success bg-card p-6"><h2 className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 className="h-5 w-5" />{t("delivery.title")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("delivery.d")}</p><Button asChild className="mt-4"><a href={ticket.url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" />{t("delivery.open")}</a></Button><GatePassActions order={order} ticket={ticket} /><p className="mt-2 text-xs text-muted-foreground">{t("delivery.expiry")}</p></section>}
 
           {isBuyer && order.status === "ticket_delivered" && <div><Button disabled={busy} onClick={() => action(() => completeFn({ data: { order_id: order.id } }), t("order.completed"))}>{t("order.confirm")}</Button><p className="mt-2 text-xs text-muted-foreground">{t("order.entryHint")}</p></div>}
           {!isBuyer && order.payout_released_at && <p className="rounded-2xl bg-secondary p-4 text-sm font-semibold text-success">{t("order.payoutReleased")}</p>}
 
-          {isBuyer && ["paid", "ticket_delivered"].includes(order.status) && <section className="rounded-3xl border bg-card p-6"><Button variant="outline" onClick={() => setDisputing((v) => !v)}>{t("dispute.cta")}</Button>{disputing && <div className="mt-4"><Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("dispute.placeholder")} maxLength={2000} /><Button disabled={busy || reason.trim().length < 5} variant="destructive" className="mt-3" onClick={() => action(() => disputeFn({ data: { order_id: order.id, reason } }), t("dispute.saved"))}>{t("dispute.submit")}</Button></div>}</section>}
+          <DisputePanel orderId={order.id} userId={data.viewerId} isBuyer={isBuyer} canRaise={Boolean(isBuyer && ["paid","ticket_delivered"].includes(order.status) && order.listings?.events?.starts_at && canRaiseDispute(order.listings.events.starts_at))} canRespond={order.seller_id===data.viewerId} />
 
           {isBuyer && ["ticket_delivered", "completed"].includes(order.status) && !data.review && <section className="rounded-3xl border bg-card p-6"><h2 className="text-xl font-bold">{t("review.title")}</h2><div className="mt-3 flex gap-1" aria-label={t("review.rating")}>{[1,2,3,4,5].map((n) => <Button key={n} type="button" variant="ghost" size="icon" aria-label={`${n}`} onClick={() => setRating(n)}><Star className={`h-6 w-6 ${n <= rating ? "fill-primary text-primary" : "text-muted-foreground"}`} /></Button>)}</div><Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t("review.placeholder")} maxLength={1000} /><Button disabled={busy} className="mt-3" onClick={() => action(() => reviewFn({ data: { order_id: order.id, rating, comment: comment || undefined } }), t("review.saved"))}>{t("review.submit")}</Button></section>}
           {data.review && <p className="rounded-2xl bg-secondary p-4 text-sm">{t("review.yours")}: {data.review.rating}/5 {data.review.comment && `· ${data.review.comment}`}</p>}
