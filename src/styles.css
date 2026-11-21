@@ -132,3 +132,8 @@
   & ul { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
   & strong { color: var(--color-foreground); }
 }
+
+@media print {
+  header, footer, nav { display: none !important; }
+  body { background: var(--color-card); }
+}

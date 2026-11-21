@@ -25,8 +25,13 @@ import { Route as LegalGrievanceRouteImport } from './routes/legal/grievance'
 import { Route as LegalPrivacyRouteImport } from './routes/legal/privacy'
 import { Route as LegalRefundPolicyRouteImport } from './routes/legal/refund-policy'
 import { Route as LegalTermsRouteImport } from './routes/legal/terms'
+import { Route as ListingsListingIdRouteImport } from './routes/listings/$listingId'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated/admin.reviews'
+import { Route as AuthenticatedCheckoutListingIdRouteImport } from './routes/_authenticated/checkout.$listingId'
+import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenticated/orders.index'
+import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
+import { Route as AuthenticatedOrdersOrderIdInvoiceRouteImport } from './routes/_authenticated/orders.$orderId_.invoice'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -107,6 +112,11 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
   path: '/legal/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListingsListingIdRoute = ListingsListingIdRouteImport.update({
+  id: '/listings/$listingId',
+  path: '/listings/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminEventsRoute =
   AuthenticatedAdminEventsRouteImport.update({
     id: '/events',
@@ -118,6 +128,30 @@ const AuthenticatedAdminReviewsRoute =
     id: '/reviews',
     path: '/reviews',
     getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedCheckoutListingIdRoute =
+  AuthenticatedCheckoutListingIdRouteImport.update({
+    id: '/checkout/$listingId',
+    path: '/checkout/$listingId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrdersIndexRoute =
+  AuthenticatedOrdersIndexRouteImport.update({
+    id: '/orders/',
+    path: '/orders/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrdersOrderIdRoute =
+  AuthenticatedOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrdersOrderIdInvoiceRoute =
+  AuthenticatedOrdersOrderIdInvoiceRouteImport.update({
+    id: '/orders/$orderId_/invoice',
+    path: '/orders/$orderId/invoice',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -135,9 +169,14 @@ export interface FileRoutesByFullPath {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
   '/events/': typeof EventsIndexRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/orders/': typeof AuthenticatedOrdersIndexRoute
+  '/orders/$orderId/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -154,9 +193,14 @@ export interface FileRoutesByTo {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
   '/events': typeof EventsIndexRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
+  '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/orders': typeof AuthenticatedOrdersIndexRoute
+  '/orders/$orderId/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -175,9 +219,14 @@ export interface FileRoutesById {
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/refund-policy': typeof LegalRefundPolicyRoute
   '/legal/terms': typeof LegalTermsRoute
+  '/listings/$listingId': typeof ListingsListingIdRoute
   '/events/': typeof EventsIndexRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
+  '/_authenticated/checkout/$listingId': typeof AuthenticatedCheckoutListingIdRoute
+  '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
+  '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
+  '/_authenticated/orders/$orderId_/invoice': typeof AuthenticatedOrdersOrderIdInvoiceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -196,9 +245,14 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/listings/$listingId'
     | '/events/'
     | '/admin/events'
     | '/admin/reviews'
+    | '/checkout/$listingId'
+    | '/orders/$orderId'
+    | '/orders/'
+    | '/orders/$orderId/invoice'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -215,9 +269,14 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/listings/$listingId'
     | '/events'
     | '/admin/events'
     | '/admin/reviews'
+    | '/checkout/$listingId'
+    | '/orders/$orderId'
+    | '/orders'
+    | '/orders/$orderId/invoice'
   id:
     | '__root__'
     | '/'
@@ -235,9 +294,14 @@ export interface FileRouteTypes {
     | '/legal/privacy'
     | '/legal/refund-policy'
     | '/legal/terms'
+    | '/listings/$listingId'
     | '/events/'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/reviews'
+    | '/_authenticated/checkout/$listingId'
+    | '/_authenticated/orders/$orderId'
+    | '/_authenticated/orders/'
+    | '/_authenticated/orders/$orderId_/invoice'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -251,6 +315,7 @@ export interface RootRouteChildren {
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalRefundPolicyRoute: typeof LegalRefundPolicyRoute
   LegalTermsRoute: typeof LegalTermsRoute
+  ListingsListingIdRoute: typeof ListingsListingIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
 }
 
@@ -368,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/listings/$listingId': {
+      id: '/listings/$listingId'
+      path: '/listings/$listingId'
+      fullPath: '/listings/$listingId'
+      preLoaderRoute: typeof ListingsListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/events': {
       id: '/_authenticated/admin/events'
       path: '/events'
@@ -381,6 +453,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/reviews'
       preLoaderRoute: typeof AuthenticatedAdminReviewsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/checkout/$listingId': {
+      id: '/_authenticated/checkout/$listingId'
+      path: '/checkout/$listingId'
+      fullPath: '/checkout/$listingId'
+      preLoaderRoute: typeof AuthenticatedCheckoutListingIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders/': {
+      id: '/_authenticated/orders/'
+      path: '/orders'
+      fullPath: '/orders/'
+      preLoaderRoute: typeof AuthenticatedOrdersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders/$orderId': {
+      id: '/_authenticated/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/orders/$orderId_/invoice': {
+      id: '/_authenticated/orders/$orderId_/invoice'
+      path: '/orders/$orderId/invoice'
+      fullPath: '/orders/$orderId/invoice'
+      preLoaderRoute: typeof AuthenticatedOrdersOrderIdInvoiceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -404,6 +504,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedSellRoute: typeof AuthenticatedSellRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedCheckoutListingIdRoute: typeof AuthenticatedCheckoutListingIdRoute
+  AuthenticatedOrdersOrderIdRoute: typeof AuthenticatedOrdersOrderIdRoute
+  AuthenticatedOrdersIndexRoute: typeof AuthenticatedOrdersIndexRoute
+  AuthenticatedOrdersOrderIdInvoiceRoute: typeof AuthenticatedOrdersOrderIdInvoiceRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -412,6 +516,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedSellRoute: AuthenticatedSellRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedCheckoutListingIdRoute: AuthenticatedCheckoutListingIdRoute,
+  AuthenticatedOrdersOrderIdRoute: AuthenticatedOrdersOrderIdRoute,
+  AuthenticatedOrdersIndexRoute: AuthenticatedOrdersIndexRoute,
+  AuthenticatedOrdersOrderIdInvoiceRoute:
+    AuthenticatedOrdersOrderIdInvoiceRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -428,6 +537,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalRefundPolicyRoute: LegalRefundPolicyRoute,
   LegalTermsRoute: LegalTermsRoute,
+  ListingsListingIdRoute: ListingsListingIdRoute,
   EventsIndexRoute: EventsIndexRoute,
 }
 export const routeTree = rootRouteImport

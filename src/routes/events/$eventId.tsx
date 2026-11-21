@@ -89,10 +89,12 @@ function EventPage() {
           ) : (
             <ul className="mt-4 divide-y rounded-2xl border bg-card">
               {listings.map((l) => (
-                <li key={l.id} className="flex items-center justify-between gap-4 p-4">
-                  <div><p className="font-semibold">{l.section ?? "General"}{l.seat_info ? ` · ${l.seat_info}` : ""}</p>
-                    <p className="text-sm text-muted-foreground">{l.quantity} ticket{l.quantity > 1 ? "s" : ""} · face value {formatINR(l.face_value_paise)}</p></div>
-                  <div className="text-right"><p className="font-display text-xl font-extrabold">{formatINR(l.price_paise)}</p><p className="text-xs text-muted-foreground">each, before fees</p></div>
+                <li key={l.id}>
+                  <Link to="/listings/$listingId" params={{ listingId: l.id }} className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-secondary">
+                    <div><p className="font-semibold">{l.section ?? "General"}{l.seat_info ? ` · ${l.seat_info}` : ""}</p>
+                      <p className="text-sm text-muted-foreground">{l.quantity} ticket{l.quantity > 1 ? "s" : ""} · face value {formatINR(l.face_value_paise)}</p></div>
+                    <div className="text-right"><p className="font-display text-xl font-extrabold">{formatINR(l.price_paise)}</p><p className="text-xs text-muted-foreground">each, before fees</p></div>
+                  </Link>
                 </li>
               ))}
             </ul>

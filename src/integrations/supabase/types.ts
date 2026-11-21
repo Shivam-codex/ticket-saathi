@@ -472,16 +472,76 @@ export type Database = {
           },
         ]
       }
+      order_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["order_status"] | null
+          id: string
+          metadata: Json
+          note: string | null
+          order_id: string
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+          order_id: string
+          to_status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["order_status"] | null
+          id?: string
+          metadata?: Json
+          note?: string | null
+          order_id?: string
+          to_status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           buyer_fee_gst_paise: number
           buyer_fee_paise: number
           buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
           created_at: string
+          delivered_at: string | null
           fee_config_id: string | null
+          hold_expires_at: string | null
           id: string
           idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
           listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
           price_paise: number
           quantity: number
           seller_fee_gst_paise: number
@@ -496,11 +556,23 @@ export type Database = {
           buyer_fee_gst_paise: number
           buyer_fee_paise: number
           buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          buyer_state_code?: string | null
+          buyer_upi_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           fee_config_id?: string | null
+          hold_expires_at?: string | null
           id?: string
           idempotency_key?: string | null
+          invoice_issued_at?: string | null
+          invoice_number?: string | null
           listing_id: string
+          paid_at?: string | null
+          payment_method?: string
+          payment_provider?: string
+          payment_ref?: string | null
           price_paise: number
           quantity: number
           seller_fee_gst_paise: number
@@ -515,11 +587,23 @@ export type Database = {
           buyer_fee_gst_paise?: number
           buyer_fee_paise?: number
           buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          buyer_state_code?: string | null
+          buyer_upi_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           fee_config_id?: string | null
+          hold_expires_at?: string | null
           id?: string
           idempotency_key?: string | null
+          invoice_issued_at?: string | null
+          invoice_number?: string | null
           listing_id?: string
+          paid_at?: string | null
+          payment_method?: string
+          payment_provider?: string
+          payment_ref?: string | null
           price_paise?: number
           quantity?: number
           seller_fee_gst_paise?: number
@@ -620,7 +704,9 @@ export type Database = {
           payout_bank_ifsc: string | null
           payout_upi_id: string | null
           preferred_lang: string
+          preferred_payment_method: string
           profile_completed: boolean
+          saved_upi_id: string | null
           state_code: string | null
           updated_at: string
         }
@@ -634,7 +720,9 @@ export type Database = {
           payout_bank_ifsc?: string | null
           payout_upi_id?: string | null
           preferred_lang?: string
+          preferred_payment_method?: string
           profile_completed?: boolean
+          saved_upi_id?: string | null
           state_code?: string | null
           updated_at?: string
         }
@@ -648,7 +736,9 @@ export type Database = {
           payout_bank_ifsc?: string | null
           payout_upi_id?: string | null
           preferred_lang?: string
+          preferred_payment_method?: string
           profile_completed?: boolean
+          saved_upi_id?: string | null
           state_code?: string | null
           updated_at?: string
         }
@@ -701,6 +791,58 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_reviews: {
+        Row: {
+          buyer_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          rating: number
+          seller_id: string
+        }
+        Insert: {
+          buyer_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          rating: number
+          seller_id: string
+        }
+        Update: {
+          buyer_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_reviews_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -779,6 +921,64 @@ export type Database = {
     }
     Functions: {
       become_seller: { Args: never; Returns: boolean }
+      create_checkout_order: {
+        Args: {
+          p_buyer_fee_gst_paise: number
+          p_buyer_fee_paise: number
+          p_buyer_id: string
+          p_buyer_name: string
+          p_buyer_phone: string
+          p_buyer_state_code: string
+          p_buyer_upi_id: string
+          p_fee_config_id: string
+          p_idempotency_key: string
+          p_listing_id: string
+          p_payment_method: string
+          p_quantity: number
+          p_seller_fee_gst_paise: number
+          p_seller_fee_paise: number
+          p_seller_net_paise: number
+          p_total_paise: number
+          p_unit_price_paise: number
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          price_paise: number
+          quantity: number
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       expire_started_listings: { Args: never; Returns: number }
       has_role: {
         Args: {
@@ -788,6 +988,102 @@ export type Database = {
         Returns: boolean
       }
       is_seller_ready: { Args: { _user_id: string }; Returns: boolean }
+      release_checkout_order: {
+        Args: { p_actor_id: string; p_order_id: string; p_reason: string }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          price_paise: number
+          quantity: number
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      release_expired_checkouts: { Args: never; Returns: number }
+      seller_public_stats: {
+        Args: { _seller_id: string }
+        Returns: {
+          average_rating: number
+          completed_sales: number
+          rating_count: number
+        }[]
+      }
+      transition_order: {
+        Args: {
+          p_actor_id: string
+          p_expected: Database["public"]["Enums"]["order_status"]
+          p_next: Database["public"]["Enums"]["order_status"]
+          p_note: string
+          p_order_id: string
+          p_payment_ref?: string
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          price_paise: number
+          quantity: number
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role: "buyer" | "seller" | "admin"
@@ -807,6 +1103,8 @@ export type Database = {
         | "refunded"
         | "cancelled"
         | "disputed"
+        | "payment_pending"
+        | "ticket_delivered"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -952,6 +1250,8 @@ export const Constants = {
         "refunded",
         "cancelled",
         "disputed",
+        "payment_pending",
+        "ticket_delivered",
       ],
     },
   },

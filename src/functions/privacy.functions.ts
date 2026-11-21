@@ -30,7 +30,7 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     const uid = context.userId;
     const { data: open } = await context.supabase
       .from("orders").select("id").or(`buyer_id.eq.${uid},seller_id.eq.${uid}`)
-      .in("status", ["pending", "paid", "delivered", "disputed"]).limit(1);
+      .in("status", ["pending", "payment_pending", "paid", "delivered", "ticket_delivered", "disputed"]).limit(1);
     if (open && open.length > 0) {
       return { ok: false as const, reason: "You have orders in progress. You can delete your account once they are completed or refunded." };
     }

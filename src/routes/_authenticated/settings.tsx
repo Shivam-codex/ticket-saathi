@@ -35,6 +35,7 @@ function Settings() {
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [upi, setUpi] = useState("");
+  const [paymentUpi, setPaymentUpi] = useState("");
   const [account, setAccount] = useState("");
   const [ifsc, setIfsc] = useState("");
   const [holder, setHolder] = useState("");
@@ -44,6 +45,7 @@ function Settings() {
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle().then(({ data }) => {
       if (!data) return;
       setName(data.full_name ?? ""); setUpi(data.payout_upi_id ?? ""); setAccount(data.payout_bank_account ?? "");
+      setPaymentUpi(data.saved_upi_id ?? "");
       setIfsc(data.payout_bank_ifsc ?? ""); setHolder(data.payout_account_holder ?? "");
     });
     supabase.from("consents").select("purpose, granted, created_at").eq("user_id", user.id).order("created_at", { ascending: true }).then(({ data }) => {
@@ -86,6 +88,12 @@ function Settings() {
       payout_bank_ifsc: ifsc.trim().toUpperCase() || null, payout_account_holder: holder.trim() || null,
     }).eq("id", user.id);
     error ? toast.error("Could not save") : toast.success("Payout details saved");
+  };
+
+  const savePaymentPreference = async () => {
+    if (paymentUpi && !upiSchema.safeParse(paymentUpi).success) { toast.error("Enter a valid UPI ID"); return; }
+    const { error } = await supabase.from("profiles").update({ saved_upi_id: paymentUpi.trim() || null, preferred_payment_method: "upi" }).eq("id", user.id);
+    error ? toast.error("Could not save") : toast.success("Saved");
   };
 
   const toggleConsent = async (p: ConsentPurpose, v: boolean) => {
@@ -150,6 +158,12 @@ function Settings() {
           <div><Label htmlFor="holder">Account holder name</Label><Input id="holder" value={holder} onChange={(e) => setHolder(e.target.value)} /></div>
           <Button onClick={savePayout}>{t("settings.save")}</Button>
         </div>
+      </Section>
+
+      <Section title={t("settings.payments")}>
+        <Label htmlFor="payment-upi">{t("checkout.savedUpi")}</Label>
+        <div className="mt-2 flex gap-2"><Input id="payment-upi" placeholder="name@okaxis" value={paymentUpi} onChange={(e) => setPaymentUpi(e.target.value)} /><Button onClick={savePaymentPreference}>{t("settings.save")}</Button></div>
+        <p className="mt-2 text-sm text-muted-foreground">{t("settings.payments.d")}</p>
       </Section>
 
       <Section title={t("settings.privacy")}>
