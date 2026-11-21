@@ -45,3 +45,6 @@ use the editor.
 - Ticket files are private (`ticket-proofs` bucket, `<uid>/` folders); secrets (file path, QR hash, extracted text) live in `listing_secrets`, readable only by seller/admin and written only by server code — buyers never see them before payment.
 - QR duplicates are blocked by a partial unique index on `listing_secrets.qr_hash` over live/sold statuses (mirrored from listings by trigger); the app check in `verification/checks.ts` is a friendly pre-check, the index is the guarantee.
 - Verification decisions: duplicate → rejected, trust score ≥ AUTO_APPROVE_SCORE → active, else admin review; AI failure lowers the score instead of blocking.
+- Checkout reserves a listing through an atomic database update and a partial unique live-order index; optional Upstash Redis is an additional lock, never the correctness boundary — prevents double-selling even when Redis is unavailable.
+- Order state changes go through the service-role-only `transition_order` SQL function, which validates transitions and appends `order_events`; buyers and sellers never write order status directly.
+- Payment providers implement the adapter contract; Phase 4 uses only the mock UPI adapter, and GST invoices stay visibly draft until registered business tax details are configured.

@@ -57,6 +57,13 @@
       "when": 1795240688789,
       "tag": "0007_phase4_expire_checkout_holds",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795240878543,
+      "tag": "0008_phase4_buyer_order_listing_read",
+      "breakpoints": true
     }
   ]
 }

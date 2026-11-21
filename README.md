@@ -71,3 +71,24 @@ See `.env.example`.
 - [ ] Blurry/edited ticket lands in Admin → Ticket reviews; approve makes it live.
 - [ ] Pause hides listing from the event page; resume shows it again; cancel frees the QR.
 - [ ] Signed-in buyer cannot read another seller's ticket file.
+
+## Phase 4 — Buying with mock UPI
+
+- `/listings/:id`: live server quote with ticket price, buyer fee and GST, seller rating/sales, trust score and Buyer Protection.
+- `/checkout/:listingId`: buyer name/phone/UPI, saved UPI preference and a ten-minute reservation.
+- `/orders`: buyer and seller order history. `/orders/:id`: mock UPI intent + QR, simulated success/failure, private ticket delivery, completion, disputes and seller reviews. `/orders/:id/invoice`: printable **draft** GST invoice for the platform fee only.
+- `src/lib/pricing.server.ts`: single integer-paise pricing source. With default 5% buyer/seller fees and 18% GST on each fee, a ₹1,000 ticket gives buyer total **₹1,059** and seller net **₹941**.
+- Checkout correctness boundary: atomic database listing update + live-order unique index. Optional Upstash Redis adds a token-checked ten-minute lock when `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are configured; the database remains authoritative.
+- State transitions are validated and logged in `order_events`. Expired holds release on activity and through a once-per-minute reconciliation job.
+- Payments are mock-only: the `passon-mock://` intent/QR never contacts a bank. The GST invoice remains a draft until the registered legal name, GSTIN and business address are configured.
+
+### Phase 4 test checklist
+- [x] Pricing unit tests cover the required ₹1,000 example, quantity, half-up rounding, zero fees/free tickets and invalid/overflow inputs.
+- [x] Twelve simultaneous checkout attempts against a real listing produce one winner; idempotent retry returns the same order.
+- [x] Forced expiry cancels the order and reactivates the listing.
+- [x] Browser purchase: reserve → mock UPI success → private PNG ticket returns HTTP 200 → draft invoice → completion → five-star seller review.
+- [x] Browser failure: mock UPI failure cancels the order and makes the same listing available again.
+- [x] Orders list retains event/seat details after the listing is held or sold.
+- [x] Mobile checkout has no horizontal overflow; seller rating and completed-sale count come from real orders.
+- [ ] Configure Redis credentials and repeat checkout to exercise the Redis lock; only the atomic database lock was exercised here.
+- [ ] Replace the mock adapter and draft tax details before accepting real payments.

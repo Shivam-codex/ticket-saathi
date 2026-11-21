@@ -4,6 +4,7 @@
 - [ ] Phone OTP live — blocked: SMS provider must be connected in Auth settings
 - [ ] Make an admin — blocked: user must sign in once so their account can be given the admin role
 - [x] Phase 3: pricing rules + tests, create listing, verification, seller controls
-- [ ] Phase 4: listing detail, tested checkout pricing, atomic 10-minute holds, mock UPI, orders, invoice
+- [x] Phase 4: listing detail, tested checkout pricing, atomic 10-minute holds, mock UPI, orders, ticket delivery, reviews, invoice
 - [ ] Real payment provider — later phase; Phase 4 uses the mock adapter
-- [ ] Redis credentials — optional until supplied; database hold remains the correctness boundary
+- [ ] Production GST invoice — blocked: registered legal name, GSTIN and business address not supplied
+- [ ] Redis credentials — optional until supplied; database hold remains the correctness boundary and is tested

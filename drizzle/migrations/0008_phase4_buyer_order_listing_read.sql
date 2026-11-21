@@ -1,0 +1,2 @@
+create policy "buyer reads ordered listing" on public.listings for select to authenticated
+  using (exists (select 1 from public.orders o where o.listing_id = listings.id and o.buyer_id = auth.uid()));

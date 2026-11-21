@@ -103,7 +103,7 @@ describe.skipIf(!hasDatabase)("atomic checkout database integration", () => {
       await supabaseAdmin.from("orders").update({ hold_expires_at: new Date(Date.now() - 1000).toISOString() }).eq("id", winner.id);
       const expired = await supabaseAdmin.rpc("release_expired_checkouts");
       expect(expired.error).toBeNull();
-      expect(expired.data).toBeGreaterThanOrEqual(1);
+      // The once-per-minute scheduled reconciler may win this race; either path must cancel and release.
       const cancelled = await supabaseAdmin.from("orders").select("status").eq("id", winner.id).single();
       expect(cancelled.data?.status).toBe("cancelled");
       const released = await supabaseAdmin.from("listings").select("status, held_until").eq("id", listingId).single();
