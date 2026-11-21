@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useI18n } from "@/lib/i18n";
 import { normaliseIndianPhone } from "@/lib/validation";
+import { TurnstileField } from "@/components/security/TurnstileField";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in to PassOn with your mobile number or Google account." },
       { property: "og:title", content: "Sign in — PassOn" },
       { property: "og:description", content: "Sign in with mobile OTP or Google." },
+      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -33,6 +35,8 @@ function AuthPage() {
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | undefined>();
+  const turnstileConfigured = !!import.meta.env["VITE_TURNSTILE_SITE_KEY"];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/settings", replace: true }); });
@@ -41,8 +45,9 @@ function AuthPage() {
   const sendOtp = async () => {
     const e164 = normaliseIndianPhone(phone);
     if (!e164) { toast.error("Enter a valid 10-digit Indian mobile number"); return; }
+    if (turnstileConfigured && !captchaToken) { toast.error("Please complete the security check"); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone: e164 });
+    const { error } = await supabase.auth.signInWithOtp({ phone: e164, options: captchaToken ? { captchaToken } : {} });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     setSentTo(e164); toast.success("OTP sent");
@@ -73,7 +78,8 @@ function AuthPage() {
               <span className="grid h-11 place-items-center rounded-md border bg-muted px-3 text-sm">+91</span>
               <Input id="phone" inputMode="numeric" autoComplete="tel-national" className="h-11" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="98765 43210" />
             </div>
-            <Button className="h-11 w-full" disabled={busy} onClick={sendOtp}>{t("auth.sendOtp")}</Button>
+            <TurnstileField action="signup" onToken={setCaptchaToken} />
+            <Button className="h-11 w-full" disabled={busy || (turnstileConfigured && !captchaToken)} onClick={sendOtp}>{t("auth.sendOtp")}</Button>
           </div>
         ) : (
           <div className="mt-6 space-y-4">

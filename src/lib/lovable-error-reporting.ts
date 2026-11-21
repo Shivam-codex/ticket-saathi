@@ -24,8 +24,11 @@ declare global {
   }
 }
 
+import { captureBrowserException } from "./observability";
+
 export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
+  captureBrowserException(error);
   window.__lovableEvents?.captureException?.(
     error,
     {

@@ -27,10 +27,10 @@ export const Route = createFileRoute("/events/$eventId")({
       meta: [
         { title }, { name: "description", content: desc },
         { property: "og:title", content: title }, { property: "og:description", content: desc },
-        { property: "og:type", content: "website" }, { property: "og:url", content: `/events/${params.eventId}` },
+        { property: "og:type", content: "website" }, { property: "og:url", content: `/events/${params.eventId}` }, { name: "twitter:card", content: og ? "summary_large_image" : "summary" },
         ...(og ? [{ property: "og:image", content: og }, { name: "twitter:image", content: og }] : []),
       ],
-      links: [{ rel: "canonical", href: `/events/${params.eventId}` }],
+      links: [{ rel: "canonical", href: `/events/${params.eventId}` }, ...(og ? [{ rel: "preload", as: "image", href: og, fetchpriority: "high" }] : [])],
       scripts: [{ type: "application/ld+json", children: JSON.stringify({
         "@context": "https://schema.org", "@type": "Event", name: e.title, startDate: e.starts_at, image: og,
         location: { "@type": "Place", name: e.venues?.name, address: `${e.venues?.address ?? ""}, ${e.venues?.city ?? ""}` },
@@ -50,7 +50,7 @@ function EventPage() {
   const data = Route.useLoaderData();
   const router = useRouter();
   useLiveListings(() => { router.options.context.queryClient.invalidateQueries({ queryKey: ["event", eventId] }); router.invalidate(); }, eventId);
-  const { event: e, listings } = data;
+  const { event: e, listings, listingOpen } = data;
   const capNote = e.resale_max_percent != null ? `Resale capped at ${e.resale_max_percent}% of face value for this event.` : "Resale capped at face value.";
   return (
     <div>
@@ -83,6 +83,8 @@ function EventPage() {
           </div>
           {!e.is_resellable ? (
             <p className="mt-4 flex items-start gap-3 rounded-2xl border border-destructive/40 p-5 text-sm"><Ban className="h-5 w-5 text-destructive" />The organiser does not allow ticket transfer for this event, so it can't be listed on PassOn.</p>
+          ) : !listingOpen ? (
+            <p className="mt-4 flex items-start gap-3 rounded-2xl border border-warning bg-card p-5 text-sm"><Ban className="h-5 w-5 text-warning" />Listings and checkout are temporarily paused for this event or its state. Existing orders remain available.</p>
           ) : listings.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-dashed p-8 text-center">
               <p className="text-muted-foreground">No tickets listed yet. Have one you can't use?</p>

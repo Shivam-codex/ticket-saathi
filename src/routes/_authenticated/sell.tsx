@@ -12,6 +12,8 @@ import { useI18n } from "@/lib/i18n";
 import { hasValidPayout } from "@/lib/validation";
 import { formatINR } from "@/lib/event-filters";
 import { FairHint } from "@/components/listings/FairHint";
+import { TurnstileField } from "@/components/security/TurnstileField";
+import { trackMarketplaceEvent } from "@/lib/observability";
 import { createListing, getSellEvent, listSellableEvents, quoteListing, verifyListing } from "@/functions/listings.functions";
 
 export const Route = createFileRoute("/_authenticated/sell")({
@@ -94,6 +96,9 @@ function Wizard() {
   const [price, setPrice] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [warranty, setWarranty] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState<string | undefined>();
+  const turnstileConfigured = !!import.meta.env["VITE_TURNSTILE_SITE_KEY"];
   const [submitting, setSubmitting] = useState(false);
   const [rejected, setRejected] = useState<{ message: string }[] | null>(null);
   const [result, setResult] = useState<{ decision: string; score: number | null; reason: string | null } | null>(null);
@@ -137,8 +142,9 @@ function Wizard() {
     if (!event || !file) return;
     setSubmitting(true); setRejected(null);
     try {
-      const res = await createFn({ data: { event_id: event.id, section: section || undefined, seat_info: seat || undefined, quantity: qty, face_value_paise: facePaise, price_paise: pricePaise, file_path: file.path, file_mime: file.mime, warranty: true } });
+      const res = await createFn({ data: { event_id: event.id, section: section || undefined, seat_info: seat || undefined, quantity: qty, face_value_paise: facePaise, price_paise: pricePaise, file_path: file.path, file_mime: file.mime, warranty: true, invite_code: inviteCode || undefined, turnstile_token: turnstileToken } });
       if (!res.ok) { setRejected(res.reasons); return; }
+      trackMarketplaceEvent("listing_created", { listing_id: res.id, event_id: event.id, quantity: qty });
       setStep(5);
       const v = await verifyFn({ data: { id: res.id } });
       setResult({ decision: v.decision, score: v.score, reason: v.reason });
@@ -225,9 +231,11 @@ function Wizard() {
               <ul className="mt-1 list-disc pl-5">{(rejected ?? quote?.reasons ?? []).map((r) => <li key={r.message}>{r.message}</li>)}</ul>
             </div>
           )}
+          <div><Label htmlFor="invite-code">{t("launch.invite")}</Label><Input id="invite-code" autoComplete="off" value={inviteCode} onChange={(e) => setInviteCode(e.target.value.toUpperCase())} placeholder="PASSON-BETA-2026" /><p className="mt-1 text-xs text-muted-foreground">{t("launch.inviteHelp")}</p></div>
+          <TurnstileField action="listing" onToken={setTurnstileToken} />
           <label className="flex items-start gap-3 text-sm"><Checkbox checked={warranty} onCheckedChange={(v) => setWarranty(v === true)} className="mt-0.5" /><span>{t("sell.warranty")}</span></label>
           <div className="flex justify-between"><Button variant="ghost" onClick={() => setStep(3)}>{t("sell.back")}</Button>
-            <Button disabled={!warranty || !facePaise || !pricePaise || !!blocked || submitting} onClick={submit}>{submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{t("sell.submit")}</Button></div>
+            <Button disabled={!warranty || !facePaise || !pricePaise || !!blocked || submitting || (turnstileConfigured && !turnstileToken)} onClick={submit}>{submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{t("sell.submit")}</Button></div>
         </section>
       )}
 

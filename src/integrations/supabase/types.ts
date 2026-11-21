@@ -226,9 +226,11 @@ export type Database = {
           id: string
           image_url: string | null
           is_resellable: boolean
+          listings_killed: boolean
           min_face_value_paise: number | null
           organizer: string | null
           resale_max_percent: number | null
+          soft_launch_allowed: boolean
           starts_at: string
           title: string
           updated_at: string
@@ -243,9 +245,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_resellable?: boolean
+          listings_killed?: boolean
           min_face_value_paise?: number | null
           organizer?: string | null
           resale_max_percent?: number | null
+          soft_launch_allowed?: boolean
           starts_at: string
           title: string
           updated_at?: string
@@ -260,9 +264,11 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_resellable?: boolean
+          listings_killed?: boolean
           min_face_value_paise?: number | null
           organizer?: string | null
           resale_max_percent?: number | null
+          soft_launch_allowed?: boolean
           starts_at?: string
           title?: string
           updated_at?: string
@@ -384,6 +390,147 @@ export type Database = {
           {
             foreignKeyName: "grievance_tickets_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_invite_redemptions: {
+        Row: {
+          created_at: string
+          id: string
+          invite_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_invite_redemptions_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "launch_invites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "launch_invite_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_invites: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          max_uses: number
+          note: string | null
+          use_count: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number
+          note?: string | null
+          use_count?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          max_uses?: number
+          note?: string | null
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_settings: {
+        Row: {
+          id: string
+          invite_required: boolean
+          soft_launch_enabled: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          invite_required?: boolean
+          soft_launch_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          invite_required?: boolean
+          soft_launch_enabled?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_state_controls: {
+        Row: {
+          listings_enabled: boolean
+          state_code: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          listings_enabled?: boolean
+          state_code: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          listings_enabled?: boolean
+          state_code?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_state_controls_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1725,6 +1872,27 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      current_fee_config: {
+        Args: never
+        Returns: {
+          buyer_fee_bps: number
+          gst_bps: number
+          id: string
+          seller_fee_bps: number
+        }[]
+      }
+      current_resale_rules: {
+        Args: never
+        Returns: {
+          event_id: string
+          max_price_bps_of_face: number
+          priority: number
+          resale_allowed: boolean
+          scope: string
+          state_code: string
+        }[]
+      }
+      event_listing_open: { Args: { _event_id: string }; Returns: boolean }
       expire_started_listings: { Args: never; Returns: number }
       fail_payment_operation: {
         Args: { p_error: string; p_operation: string; p_order_id: string }
@@ -1746,6 +1914,7 @@ export type Database = {
         Returns: boolean
       }
       is_seller_ready: { Args: { _user_id: string }; Returns: boolean }
+      launch_user_allowed: { Args: { _user_id: string }; Returns: boolean }
       notify_listing_available: {
         Args: { p_listing_id: string }
         Returns: undefined
@@ -1909,6 +2078,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      redeem_launch_invite: { Args: { p_code?: string }; Returns: boolean }
       release_checkout_order: {
         Args: { p_actor_id: string; p_order_id: string; p_reason: string }
         Returns: {
@@ -1958,6 +2128,22 @@ export type Database = {
         }
       }
       release_expired_checkouts: { Args: never; Returns: number }
+      rls_coverage: {
+        Args: never
+        Returns: {
+          policy_count: number
+          rls_enabled: boolean
+          table_name: string
+        }[]
+      }
+      seller_public_rating: {
+        Args: { _seller_id: string }
+        Returns: {
+          average_rating: number
+          is_verified: boolean
+          rating_count: number
+        }[]
+      }
       seller_public_stats: {
         Args: { _seller_id: string }
         Returns: {

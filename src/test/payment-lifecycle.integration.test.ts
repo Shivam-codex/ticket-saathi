@@ -25,7 +25,7 @@ describe.skipIf(!hasDatabase)("Phase 5 payment lifecycle database integration", 
       venueId = venue.data.id;
       const event = await supabaseAdmin.from("events").insert({
         title: `Payment lifecycle ${marker}`, category: "concert", venue_id: venueId,
-        starts_at: new Date(Date.now() + 86_400_000).toISOString(), ends_at: new Date(Date.now() + 90_000_000).toISOString(),
+        starts_at: new Date(Date.now() + 86_400_000).toISOString(), ends_at: new Date(Date.now() + 90_000_000).toISOString(), soft_launch_allowed: true,
         face_value_tiers: [{ name: "General", price_paise: 100_000 }],
       }).select("id").single();
       if (event.error) throw event.error;

@@ -247,6 +247,7 @@ const en = {
   "waitlist.title": "Ticket waitlist", "waitlist.join": "Join waitlist", "waitlist.saved": "You are on the waitlist",
   "gate.prepare": "Prepare offline gate pass", "gate.preparing": "Saving on this device…", "gate.prepareFailed": "Could not save the offline pass. Check your connection and storage.",
   "assistant.open": "PassOn Guide", "assistant.title": "PassOn Guide", "assistant.ai": "Gemini AI · temporary chat", "assistant.curated": "Curated instant help", "assistant.welcome": "How can I help with tickets?", "assistant.safety": "No legal advice or refund promises. Order decisions go to support.", "assistant.placeholder": "Ask about fees, buying or selling…", "assistant.temporary": "This conversation disappears when you leave; it is not saved.", "assistant.thinking": "PassOn Guide is thinking…", "assistant.fallback": "AI is unavailable, so curated help answered instead.",
+  "launch.invite": "Soft-launch invite", "launch.inviteHelp": "Required once during invite-only launch. Already redeemed? Leave it blank.", "launch.inviteRequired": "Enter a valid invite code. If you already redeemed one, leave it blank.", "security.unconfigured": "Security check is optional in this demo until Cloudflare Turnstile is configured.",
 };
 type Dict = Record<keyof typeof en, string>;
 
@@ -490,6 +491,7 @@ const hi: Dict = {
   "waitlist.title": "टिकट प्रतीक्षा सूची", "waitlist.join": "प्रतीक्षा सूची में जुड़ें", "waitlist.saved": "आप प्रतीक्षा सूची में हैं",
   "gate.prepare": "ऑफ़लाइन गेट पास तैयार करें", "gate.preparing": "इस डिवाइस पर सेव हो रहा है…", "gate.prepareFailed": "ऑफ़लाइन पास सेव नहीं हो सका। कनेक्शन और स्टोरेज जाँचें।",
   "assistant.open": "PassOn गाइड", "assistant.title": "PassOn गाइड", "assistant.ai": "Gemini AI · अस्थायी चैट", "assistant.curated": "तैयार तुरंत सहायता", "assistant.welcome": "टिकटों में कैसे मदद करूँ?", "assistant.safety": "कानूनी सलाह या रिफंड का वादा नहीं। ऑर्डर निर्णय के लिए सहायता लें।", "assistant.placeholder": "शुल्क, खरीद या बिक्री के बारे में पूछें…", "assistant.temporary": "यह बातचीत आपके जाने पर मिट जाएगी; इसे सेव नहीं किया जाता।", "assistant.thinking": "PassOn गाइड सोच रहा है…", "assistant.fallback": "AI उपलब्ध नहीं है, इसलिए तैयार सहायता ने जवाब दिया।",
+  "launch.invite": "सॉफ्ट-लॉन्च इनवाइट", "launch.inviteHelp": "इनवाइट-ओनली लॉन्च में एक बार आवश्यक। पहले से उपयोग किया है? खाली छोड़ें।", "launch.inviteRequired": "मान्य इनवाइट कोड डालें। पहले से उपयोग किया है तो खाली छोड़ें।", "security.unconfigured": "Cloudflare Turnstile कॉन्फ़िगर होने तक इस डेमो में सुरक्षा जाँच वैकल्पिक है।",
 };
 
 const mr: Dict = {
@@ -732,6 +734,7 @@ const mr: Dict = {
   "waitlist.title": "तिकीट प्रतीक्षा यादी", "waitlist.join": "प्रतीक्षा यादीत सहभागी व्हा", "waitlist.saved": "तुम्ही प्रतीक्षा यादीत आहात",
   "gate.prepare": "ऑफलाइन गेट पास तयार करा", "gate.preparing": "या उपकरणावर जतन होत आहे…", "gate.prepareFailed": "ऑफलाइन पास जतन झाला नाही. कनेक्शन आणि स्टोरेज तपासा.",
   "assistant.open": "PassOn मार्गदर्शक", "assistant.title": "PassOn मार्गदर्शक", "assistant.ai": "Gemini AI · तात्पुरती चॅट", "assistant.curated": "तयार त्वरित मदत", "assistant.welcome": "तिकिटांबाबत कशी मदत करू?", "assistant.safety": "कायदेशीर सल्ला किंवा परताव्याची हमी नाही. ऑर्डर निर्णयांसाठी मदत घ्या.", "assistant.placeholder": "शुल्क, खरेदी किंवा विक्रीबद्दल विचारा…", "assistant.temporary": "तुम्ही गेल्यावर हे संभाषण निघून जाईल; ते जतन केले जात नाही.", "assistant.thinking": "PassOn मार्गदर्शक विचार करत आहे…", "assistant.fallback": "AI उपलब्ध नाही, म्हणून तयार मदतीने उत्तर दिले.",
+  "launch.invite": "सॉफ्ट-लॉन्च इनवाइट", "launch.inviteHelp": "इनवाइट-ओनली लॉन्चमध्ये एकदा आवश्यक. आधीच वापरला आहे? रिकामे ठेवा.", "launch.inviteRequired": "वैध इनवाइट कोड टाका. आधीच वापरला असेल तर रिकामे ठेवा.", "security.unconfigured": "Cloudflare Turnstile कॉन्फिगर होईपर्यंत या डेमोमध्ये सुरक्षा तपासणी ऐच्छिक आहे.",
 };
 
 export const dictionaries: Record<Lang, Dict> = { en, hi, mr };

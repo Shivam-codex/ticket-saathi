@@ -141,6 +141,20 @@
       "when": 1795244501593,
       "tag": "0019_phase6_report_trigger_seller_lookup",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795256459065,
+      "tag": "0020_phase7_launch_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795256702740,
+      "tag": "0021_phase7_deep_security_fixes",
+      "breakpoints": true
     }
   ]
 }

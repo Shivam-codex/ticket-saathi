@@ -13,10 +13,10 @@
 - [x] Phase 6: disputes, reputation, admin trust dashboard, takedowns and grievance inbox
 - [x] Phase 6: alerts/waitlist, assistant, notifications, wallet/gate view and group buying
 - [ ] Phase 6 blocked: automatic email delivery requires a verified sender domain; WhatsApp uses free one-tap sharing
-- [ ] Phase 7: RLS/security tests, temporary rate limits, Turnstile, security headers and dependency fixes
-- [ ] Phase 7: full-flow Playwright coverage and CI with the double-sell concurrency test
-- [ ] Phase 7: performance checks, Sentry/PostHog instrumentation and uptime endpoint
-- [ ] Phase 7: compliance/deployment documentation, seed/reset tooling and launch checklist
-- [ ] Phase 7: invite-only soft launch, event allowlist and event/state kill switches
+- [x] Phase 7: RLS/security tests, temporary rate limits, Turnstile integration, security headers and dependency fixes
+- [x] Phase 7: full-flow Playwright coverage and CI with the double-sell concurrency test
+- [x] Phase 7: image/caching improvements, optional Sentry/PostHog instrumentation and uptime endpoint
+- [x] Phase 7: compliance/deployment documentation, seed/reset tooling and launch checklist
+- [x] Phase 7: invite-only soft launch, event allowlist and event/state kill switches
 - [ ] Phase 7 blocked: production Lighthouse scores, external uptime and Vercel deployment require public staging/production targets
 - [ ] Phase 7 blocked: Turnstile requires site/secret keys; Sentry and PostHog require connected accounts

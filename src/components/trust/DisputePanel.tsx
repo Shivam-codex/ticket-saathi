@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
+import { trackMarketplaceEvent } from "@/lib/observability";
 
 export function DisputePanel({ orderId, userId, isBuyer, canRaise, canRespond }: { orderId: string; userId: string; isBuyer: boolean; canRaise: boolean; canRespond: boolean }) {
   const { t } = useI18n();
@@ -27,6 +28,7 @@ export function DisputePanel({ orderId, userId, isBuyer, canRaise, canRespond }:
     setBusy(true);
     try {
       const created = await createDispute({ data: { order_id: orderId, category: "invalid_ticket", reason } });
+      trackMarketplaceEvent("dispute_opened", { order_id: orderId, dispute_id: created.disputeId, category: "invalid_ticket" });
       if (file) {
         if (file.size > 10 * 1024 * 1024) throw new Error(t("dispute.fileSize"));
         const mime = ["application/pdf","image/png","image/jpeg","image/webp"].includes(file.type) ? file.type as "application/pdf" | "image/png" | "image/jpeg" | "image/webp" : null;

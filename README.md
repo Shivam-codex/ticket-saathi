@@ -98,7 +98,7 @@ See `.env.example`.
 - `PaymentProvider` supports `createOrder`, `verifyWebhook`, `refund`, `payoutToSeller` and `getStatus`. Mock remains the default; set `PAYMENT_PROVIDER=razorpay` only after marketplace approval.
 - Razorpay test mode is connected through the provider connector. Real checkout is blocked until each seller has an approved Razorpay Route account. Transfers must use provider-held funds (`on_hold`); PassOn never implements its own escrow or holds customer funds by custom logic.
 - **TODO: confirm payment-aggregator compliance with lawyer/CA before going live.** Also confirm Route/KYC, settlement, refund and marketplace eligibility with Razorpay.
-- The public webhook acknowledges unknown orders, deduplicates provider event IDs and reads payment/order status back from Razorpay before posting. The connector does not expose the key secret, so webhook HMAC cannot be checked; leave Razorpay's webhook Secret empty. Provider read-back and exact amount/order checks are the proof of payment. Webhook URL: `/api/public/razorpay-webhook`; subscribe to `payment.captured`, `payment.authorized` and `order.paid` separately in test and live modes.
+- The public webhook requires `RAZORPAY_WEBHOOK_SECRET` and verifies `X-Razorpay-Signature` over the exact raw body before any order lookup or event write. It acknowledges unknown orders, deduplicates provider event IDs and reads payment/order status back from Razorpay before posting. Provider read-back and exact amount/order checks remain the proof of payment. Webhook URL: `/api/public/razorpay-webhook`; subscribe to `payment.captured`, `payment.authorized` and `order.paid` separately in test and live modes.
 - Double-entry ledger groups every payment, refund and payout. TCS/TDS fields default to zero and are disabled until enabled by an admin; rates and applicability must be confirmed by a CA. `/admin/reconciliation` lists unbalanced groups and missing required entries.
 - Undelivered tickets auto-refund 24 hours after payment. Seller payout releases only after delivery, then buyer entry confirmation or 24 hours after the recorded event end with no open dispute. Missing event end times block time-based release. A five-minute authenticated scheduler processes both.
 - `/seller/earnings` shows pending/released proceeds, seller fees, GST, TCS/TDS and payout status, with PDF statements and per-order **draft** fee invoices. Provider references are deliberately excluded from browser responses.
@@ -111,3 +111,35 @@ See `.env.example`.
 - [x] Browser mock purchase, private ticket delivery and buyer entry confirmation complete successfully.
 - [ ] Complete Razorpay Route approval and linked seller accounts before testing or enabling real charges/transfers.
 - [ ] Obtain lawyer/CA approval for payment-aggregator compliance and tax treatment; GST and seller fee invoices remain drafts.
+
+## Phase 6 — Trust and differentiation
+
+- Disputes include evidence, seller responses, admin refund/payout decisions and audit logs. Reputation, trusted-report takedowns, grievance deadlines and admin controls are implemented.
+- Price alerts, waitlist offers, in-app notifications, user-initiated WhatsApp sharing, temporary multilingual AI help, offline gate passes and 2–6 ticket checkout are included. Automatic email requires a verified sender.
+
+## Phase 7 — Hardening and soft launch
+
+- Invite-only soft launch is **enabled**. Initial invite: `PASSON-BETA-2026`; restrict or disable it in **Admin → Launch** before wider distribution. New buyers and sellers redeem once, then can leave the invite blank.
+- Only allowlisted transferable events accept listings/checkout during soft launch. Admin → Events has a per-event kill switch; Admin → Launch has per-state switches. Existing orders remain readable.
+- RLS integration tests cover every application table, anonymous private-data denial, self-verification protection, invite redemption, launch switches and privileged RPCs. Only three distinct trusted reporters can auto-hide a listing.
+- Temporary rate limits are best-effort per Worker instance, not globally guaranteed. Cloudflare Turnstile supports phone signup and listing creation; configure `VITE_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, Auth captcha settings and `TURNSTILE_REQUIRED=true` before production.
+- CSP/security headers and public-page edge caching are applied. Dependency audit is clean after patched overrides. Mock payments are blocked by default in production unless `ALLOW_MOCK_PAYMENTS=true`; never use that override for launch.
+- Sentry/PostHog setup was declined, so integrations remain inactive and optional. If connected later, browser events are `listing_created`, `checkout_started`, `payment_success` and `dispute_opened`. Existing Lovable error reporting remains active.
+- `/api/public/health` returns non-sensitive app/database health for an external uptime monitor.
+
+## Local setup and verification
+
+1. `bun install` and copy `.env.example` into the environment supplied by your hosting/tooling. Never commit secret values.
+2. Use isolated staging credentials for tests. `bunx vitest run` runs unit and available integration tests; `bunx playwright test` runs the mobile full-flow journey.
+3. `APP_ENV=staging bun scripts/seed-staging.ts` creates 20 clearly marked fixtures without duplicating them.
+4. `APP_ENV=staging CONFIRM_STAGING_RESET=DELETE_STAGING_FIXTURES bun scripts/reset-staging.ts` removes only those fixtures and their transactions; it is not a production reset.
+5. `bunx tsgo -b --noEmit` checks types. CI is in `.github/workflows/ci.yml`; set `CI_DATABASE_TESTS=true` and isolated staging variables/secrets to enable integration and Playwright jobs.
+
+## Staging, production and backups
+
+- Use separate staging and production backends, auth settings, payment credentials, invite audiences and secrets. Never point CI cleanup at production.
+- Lovable preview/publish is the supported deployment path for this TanStack Start/Cloudflare Worker project. A Vercel deployment requires a separately configured Nitro/Vercel target and has **not** been built or verified here; do not assume the Cloudflare output is Vercel-compatible.
+- Publish staging-like changes and run CI, Playwright, provider read-back, refund/payout and security checks before production. Run mobile Lighthouse against the public staging URL; local dev scores do not meet the launch requirement.
+- Managed database backups are visible under **More → Database → Manage → Backups**. Before launch or restore, export current data under **More → Database → Manage → Settings → Export project data**. Storage files are not included; download them separately from **More → Storage**. A restore loses later data and reverts schema.
+
+See `docs/COMPLIANCE.md` for lawyer/CA sign-off and `docs/LAUNCH.md` for the go/no-go checklist and known risks.

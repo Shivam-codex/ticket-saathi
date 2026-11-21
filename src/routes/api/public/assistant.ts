@@ -2,14 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider, getLovableAiGatewayRunId, withLovableAiGatewayRunIdHeader } from "@/lib/ai/gateway.server";
+import { enforceRequestRateLimit } from "@/lib/rate-limit.server";
 
-const bodySchema = z.object({ messages: z.array(z.object({ id: z.string(), role: z.enum(["user","assistant","system"]), parts: z.array(z.object({ type: z.string() }).passthrough()).max(30) }).passthrough()).min(1).max(20) });
+const bodySchema = z.object({ messages: z.array(z.object({ id: z.string(), role: z.enum(["user","assistant"]), parts: z.array(z.object({ type: z.string() }).passthrough()).max(30) }).passthrough()).min(1).max(20) });
 export const Route = createFileRoute("/api/public/assistant")({ server: { handlers: { POST: async ({ request }) => {
+  try { enforceRequestRateLimit(request, "assistant", 20, 60_000); } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Too many attempts" }, { status: 429 }); }
   let body: z.infer<typeof bodySchema>;
   try { body = bodySchema.parse(await request.json()); } catch { return Response.json({ error: "Please send a shorter valid conversation." }, { status: 400 }); }
   const lastText = body.messages.at(-1)?.parts.filter(p => p.type === "text").map(p => String((p as { text?: unknown }).text ?? "")).join(" ") ?? "";
   if (lastText.length > 2000) return Response.json({ error: "Please keep your question under 2,000 characters." }, { status: 400 });
+  const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return Response.json({ error: "Sign in to use AI assistance; curated help remains available." }, { status: 401 });
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: authData, error: authError } = await supabaseAdmin.auth.getUser(token);
+  if (authError || !authData.user) return Response.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
   const [{ data: flag }, { data: fee }] = await Promise.all([
     supabaseAdmin.from("feature_flags").select("enabled").eq("key","ai_assistant").maybeSingle(),
     supabaseAdmin.from("fee_config").select("buyer_fee_bps,seller_fee_bps,gst_bps").order("effective_from",{ascending:false}).limit(1).maybeSingle(),

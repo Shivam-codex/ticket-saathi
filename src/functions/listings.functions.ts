@@ -9,11 +9,12 @@ type Ctx = { supabase: typeof supabase; userId: string };
 const tiersSchema = z.array(z.object({ name: z.string(), price_paise: z.number() })).catch([]);
 
 async function loadRuleContext(ctx: Ctx, eventId: string) {
-  const [ev, rules, ready, seller] = await Promise.all([
+  const [ev, rules, ready, seller, launch] = await Promise.all([
     ctx.supabase.from("events").select("id, title, starts_at, is_resellable, resale_max_percent, face_value_tiers, venues(state_code)").eq("id", eventId).maybeSingle(),
-    ctx.supabase.from("resale_rules").select("scope, state_code, event_id, resale_allowed, max_price_bps_of_face, priority"),
+    ctx.supabase.rpc("current_resale_rules"),
     ctx.supabase.rpc("is_seller_ready", { _user_id: ctx.userId }),
     ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "seller" }),
+    ctx.supabase.rpc("event_listing_open", { _event_id: eventId }),
   ]);
   if (!ev.data) throw new Error("Event not found");
   const tiers = tiersSchema.parse(ev.data.face_value_tiers);
@@ -21,6 +22,7 @@ async function loadRuleContext(ctx: Ctx, eventId: string) {
     id: ev.data.id, starts_at: ev.data.starts_at, is_resellable: ev.data.is_resellable,
     resale_max_percent: ev.data.resale_max_percent, state_code: ev.data.venues?.state_code ?? null,
     max_tier_paise: tiers.length ? Math.max(...tiers.map((t) => t.price_paise)) : null,
+    listingOpen: launch.data === true,
   };
   return { event, title: ev.data.title, rules: (rules.data ?? []) as ResaleRule[], sellerVerified: !!ready.data && !!seller.data };
 }
@@ -79,12 +81,20 @@ const createSchema = quoteSchema.omit({ listing_id: true }).extend({
   file_path: z.string().min(10).max(300),
   file_mime: z.enum(["application/pdf", "image/png", "image/jpeg", "image/webp"]),
   warranty: z.literal(true),
+  invite_code: z.string().trim().min(6).max(80).optional(),
+  turnstile_token: z.string().max(2048).optional(),
 });
 
 export const createListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => createSchema.parse(d))
   .handler(async ({ data, context }) => {
+    const { enforceUserRateLimit } = await import("@/lib/rate-limit.server");
+    enforceUserRateLimit(context.userId, "create-listing", 10, 60 * 60_000);
+    const { verifyTurnstile } = await import("@/lib/turnstile.server");
+    await verifyTurnstile(data.turnstile_token, "listing");
+    const invited = await context.supabase.rpc("redeem_launch_invite", ...(data.invite_code ? [{ p_code: data.invite_code }] : []));
+    if (!invited.data) return { ok: false as const, reasons: [{ code: "INVITE_REQUIRED", message: "Enter a valid soft-launch invite code. If you already redeemed one, leave it blank." }] };
     if (!data.file_path.startsWith(`${context.userId}/`) || data.file_path.includes("..")) throw new Error("Invalid file");
     const { evaluateListing } = await import("@/lib/listing-rules.server");
     const rc = await loadRuleContext(context, data.event_id);
@@ -137,6 +147,8 @@ export const updateListing = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: l } = await context.supabase.from("listings").select("id, seller_id, event_id, section, status, is_paused, verification_status, face_value_paise, price_paise, quantity").eq("id", data.id).eq("seller_id", context.userId).maybeSingle();
     if (!l) throw new Error("Listing not found");
+    const { data: sellerProfile } = await context.supabase.from("profiles").select("is_banned").eq("id", context.userId).single();
+    if (sellerProfile?.is_banned) return { ok: false as const, message: "This seller account is suspended. Contact support." };
     if (!["draft", "active"].includes(l.status)) return { ok: false as const, message: "This listing can no longer be changed." };
     if (data.action === "resume") {
       const { data: current } = await context.supabase.from("listings").select("auto_hidden").eq("id", data.id).single();

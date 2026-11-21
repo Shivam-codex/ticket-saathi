@@ -16,7 +16,7 @@ describe.skipIf(!hasDatabase)("Phase 6 trust lifecycle database integration", ()
       const [sellerId,buyerId,...reporterIds] = userIds as [string,string,string,string,string];
       const venue = await supabaseAdmin.from("venues").insert({name:`Trust test ${marker}`,city:"Pune",state_code:"MH"}).select("id").single();
       if(venue.error)throw venue.error; venueId=venue.data.id;
-      const event = await supabaseAdmin.from("events").insert({title:`Trust lifecycle ${marker}`,category:"concert",venue_id:venueId,starts_at:new Date(Date.now()+86_400_000).toISOString(),ends_at:new Date(Date.now()+90_000_000).toISOString(),face_value_tiers:[{name:"General",price_paise:100_000}]}).select("id").single();
+      const event = await supabaseAdmin.from("events").insert({title:`Trust lifecycle ${marker}`,category:"concert",venue_id:venueId,starts_at:new Date(Date.now()+86_400_000).toISOString(),ends_at:new Date(Date.now()+90_000_000).toISOString(),soft_launch_allowed:true,face_value_tiers:[{name:"General",price_paise:100_000}]}).select("id").single();
       if(event.error)throw event.error; eventId=event.data.id;
       for(let i=0;i<5;i+=1){
         const listing=await supabaseAdmin.from("listings").insert({seller_id:sellerId,event_id:eventId,quantity:i===0?1:6,face_value_paise:100_000,price_paise:100_000,status:"active",verification_status:"approved",trust_score:90}).select("id").single();
@@ -41,6 +41,7 @@ describe.skipIf(!hasDatabase)("Phase 6 trust lifecycle database integration", ()
       const dispute=await supabaseAdmin.from("disputes").insert({order_id:orderId,raised_by:buyerId,reason:"Ticket rejected at the gate",category:"rejected_at_entry",prior_order_status:"ticket_delivered"}).select("id,response_due_at").single();
       expect(dispute.error).toBeNull();disputeId=dispute.data!.id;
       expect(new Date(dispute.data!.response_due_at!).getTime()-Date.now()).toBeGreaterThan(47*3_600_000);
+      for(const reporterId of reporterIds){const trusted=await supabaseAdmin.from("profiles").update({is_verified:true}).eq("id",reporterId);expect(trusted.error).toBeNull();}
       for(let i=0;i<2;i+=1){const report=await supabaseAdmin.from("listing_reports").insert({listing_id:reportListingId,reporter_id:reporterIds[i]!,reason:"fake_ticket"});expect(report.error).toBeNull();}
       let reported=await supabaseAdmin.from("listings").select("auto_hidden,report_count,status").eq("id",reportListingId).single();
       expect(reported.data).toMatchObject({auto_hidden:false,report_count:2,status:"active"});

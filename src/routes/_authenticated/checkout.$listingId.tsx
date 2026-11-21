@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
+import { trackMarketplaceEvent } from "@/lib/observability";
 
 export const Route = createFileRoute("/_authenticated/checkout/$listingId")({
   validateSearch: (search: Record<string, unknown>): { quantity: number } => ({ quantity: Math.min(6, Math.max(1, Number(search["quantity"]) || 1)) }),
@@ -34,6 +35,7 @@ function CheckoutPage() {
   const [name, setName] = useState(data.profile?.full_name ?? "");
   const [phone, setPhone] = useState("");
   const [upi, setUpi] = useState(data.profile?.saved_upi_id ?? "");
+  const [inviteCode, setInviteCode] = useState("");
   const [key] = useState(() => crypto.randomUUID());
   const [busy, setBusy] = useState(false);
 
@@ -41,12 +43,13 @@ function CheckoutPage() {
     event.preventDefault();
     setBusy(true);
     try {
-      const result = await checkout({ data: { listing_id: data.listing.id, quantity: data.quote.quantity, idempotency_key: key, buyer_name: name, buyer_phone: phone, buyer_upi_id: upi || undefined } });
+      const result = await checkout({ data: { listing_id: data.listing.id, quantity: data.quote.quantity, idempotency_key: key, buyer_name: name, buyer_phone: phone, buyer_upi_id: upi || undefined, invite_code: inviteCode || undefined } });
       if (!result.ok) {
-        const messages = { invalid_phone: t("checkout.invalidPhone"), invalid_upi: t("checkout.invalidUpi"), unavailable: t("checkout.unavailable"), own_listing: t("checkout.ownListing"), provider_unavailable: t("checkout.providerUnavailable") } as const;
+        const messages = { invalid_phone: t("checkout.invalidPhone"), invalid_upi: t("checkout.invalidUpi"), unavailable: t("checkout.unavailable"), own_listing: t("checkout.ownListing"), provider_unavailable: t("checkout.providerUnavailable"), invite_required: t("launch.inviteRequired") } as const;
         toast.error(messages[result.reason]);
         return;
       }
+      trackMarketplaceEvent("checkout_started", { order_id: result.orderId, listing_id: data.listing.id, quantity: data.quote.quantity, provider: data.paymentProvider });
       navigate({ to: "/orders/$orderId", params: { orderId: result.orderId } });
     } catch {
       toast.error(t("checkout.failed"));
@@ -63,6 +66,7 @@ function CheckoutPage() {
           <div><Label htmlFor="buyer-name">{t("onb.name")}</Label><Input id="buyer-name" autoComplete="name" required minLength={2} maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></div>
           <div><Label htmlFor="buyer-phone">{t("auth.phone")}</Label><Input id="buyer-phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
           <div><Label htmlFor="buyer-upi">{t("checkout.savedUpi")}</Label><Input id="buyer-upi" autoComplete="off" placeholder="name@okaxis" value={upi} onChange={(e) => setUpi(e.target.value)} /><p className="mt-1 text-xs text-muted-foreground">{t("checkout.upiHelp")}</p></div>
+          <div><Label htmlFor="invite-code">{t("launch.invite")}</Label><Input id="invite-code" autoComplete="off" value={inviteCode} onChange={(e) => setInviteCode(e.target.value.toUpperCase())} placeholder="PASSON-BETA-2026" /><p className="mt-1 text-xs text-muted-foreground">{t("launch.inviteHelp")}</p></div>
           <div className="rounded-2xl bg-secondary p-4 text-sm"><p className="flex items-center gap-2 font-semibold"><LockKeyhole className="h-4 w-4" />{t(data.paymentProvider === "razorpay" ? "checkout.razorpayTitle" : "checkout.mockTitle")}</p><p className="mt-1 text-muted-foreground">{t(data.paymentProvider === "razorpay" ? "checkout.razorpay.d" : "checkout.mock.d")}</p>{!data.providerReady && <p className="mt-2 font-semibold text-destructive">{t("checkout.providerUnavailable")}</p>}</div>
           <Button type="submit" size="lg" disabled={busy || !data.providerReady} className="w-full rounded-2xl">{busy ? t("checkout.reserving") : t("checkout.reservePay")}</Button>
         </form>

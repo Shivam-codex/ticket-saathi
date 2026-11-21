@@ -15,10 +15,12 @@ async function loadListingQuote(client: typeof supabase, id: string, requestedQu
   if (!listing) return null;
   const quantity = requestedQuantity ?? Math.min(listing.quantity, 6);
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 6 || quantity > listing.quantity) throw new Error("Choose between 1 and 6 available seats");
-  const [fees, stats] = await Promise.all([
-    client.from("fee_config").select("id, buyer_fee_bps, seller_fee_bps, gst_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
-    client.rpc("seller_reputation", { _seller_id: listing.seller_id }),
+  const [fees, stats, launch] = await Promise.all([
+    client.rpc("current_fee_config").maybeSingle(),
+    client.rpc("seller_public_rating", { _seller_id: listing.seller_id }),
+    client.rpc("event_listing_open", { _event_id: listing.event_id }),
   ]);
+  if (launch.data !== true) return null;
   if (!fees.data) throw new Error("Fees are not configured");
   const { calculateOrderQuote } = await import("@/lib/pricing.server");
   const quote = calculateOrderQuote(Number(listing.price_paise), quantity, {
@@ -35,10 +37,8 @@ async function loadListingQuote(client: typeof supabase, id: string, requestedQu
     sellerStats: sellerStats ? {
       averageRating: sellerStats.average_rating == null ? null : Number(sellerStats.average_rating),
       ratingCount: sellerStats.rating_count,
-      completedSales: sellerStats.completed_sales,
-      disputeRate: Number(sellerStats.dispute_rate),
       isVerified: sellerStats.is_verified,
-    } : { averageRating: null, ratingCount: 0, completedSales: 0, disputeRate: 0, isVerified: false },
+    } : { averageRating: null, ratingCount: 0, isVerified: false },
   };
 }
 
@@ -82,12 +82,17 @@ const checkoutInput = z.object({
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(10).max(20),
   buyer_upi_id: z.string().trim().max(260).optional(),
+  invite_code: z.string().trim().min(6).max(80).optional(),
 });
 
 export const createCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => checkoutInput.parse(d))
   .handler(async ({ data, context }) => {
+    const { enforceUserRateLimit } = await import("@/lib/rate-limit.server");
+    enforceUserRateLimit(context.userId, "checkout", 12, 10 * 60_000);
+    const invited = await context.supabase.rpc("redeem_launch_invite", ...(data.invite_code ? [{ p_code: data.invite_code }] : []));
+    if (!invited.data) return { ok: false as const, reason: "invite_required" as const };
     const phone = normaliseIndianPhone(data.buyer_phone);
     if (!phone) return { ok: false as const, reason: "invalid_phone" as const };
     const upi = data.buyer_upi_id || null;
@@ -99,9 +104,10 @@ export const createCheckout = createServerFn({ method: "POST" })
     const details = await loadListingQuote(context.supabase, data.listing_id, data.quantity);
     if (!details) return { ok: false as const, reason: "unavailable" as const };
     if (details.listing.seller_id === context.userId) return { ok: false as const, reason: "own_listing" as const };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: profile }, { data: tax }] = await Promise.all([
       context.supabase.from("profiles").select("state_code").eq("id", context.userId).maybeSingle(),
-      context.supabase.from("tax_config").select("enabled, tcs_bps, tds_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
+      supabaseAdmin.from("tax_config").select("enabled, tcs_bps, tds_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
     ]);
     const { calculateOrderQuote } = await import("@/lib/pricing.server");
     const q = calculateOrderQuote(Number(details.listing.price_paise), data.quantity, {
@@ -114,7 +120,6 @@ export const createCheckout = createServerFn({ method: "POST" })
     });
     const { configuredPaymentProvider } = await import("@/lib/payments/provider.server");
     const provider = configuredPaymentProvider();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (provider === "razorpay") {
       const { data: seller } = await supabaseAdmin.from("profiles").select("razorpay_route_account_id").eq("id", details.listing.seller_id).maybeSingle();
       if (!seller?.razorpay_route_account_id) return { ok: false as const, reason: "provider_unavailable" as const };
@@ -236,6 +241,8 @@ export const getMockPaymentSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { assertMockPaymentsAllowed } = await import("@/lib/payments/provider.server");
+    assertMockPaymentsAllowed();
     const order = await readOrder(context, data.order_id);
     if (!order || order.buyer_id !== context.userId) throw new Error("Order not found");
     if (order.payment_provider !== "mock") throw new Error("This order uses Razorpay");
@@ -293,6 +300,8 @@ export const completeMockPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid(), reference: z.string().regex(/^mock_[a-f0-9]{32}$/), outcome: z.enum(["success", "failure"]) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { assertMockPaymentsAllowed } = await import("@/lib/payments/provider.server");
+    assertMockPaymentsAllowed();
     const order = await readOrder(context, data.order_id);
     if (!order || order.buyer_id !== context.userId) throw new Error("Order not found");
     if (["paid", "ticket_delivered", "completed"].includes(order.status)) return { ok: true as const, status: order.status };
@@ -345,6 +354,8 @@ export const reportOrderProblem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid(), category: z.enum(["invalid_ticket","rejected_at_entry"]).default("invalid_ticket"), reason: z.string().trim().min(5).max(2000) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { enforceUserRateLimit } = await import("@/lib/rate-limit.server");
+    enforceUserRateLimit(context.userId, "dispute", 5, 60 * 60_000);
     const order = await readOrder(context, data.order_id);
     if (!order || order.buyer_id !== context.userId || !["paid", "ticket_delivered"].includes(order.status)) throw new Error("This order cannot be disputed");
     const { canRaiseDispute } = await import("@/lib/trust-rules");

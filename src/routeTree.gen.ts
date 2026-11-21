@@ -33,6 +33,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminDisputesRouteImport } from './routes/_authenticated/admin.disputes'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminGrievancesRouteImport } from './routes/_authenticated/admin.grievances'
+import { Route as AuthenticatedAdminLaunchRouteImport } from './routes/_authenticated/admin.launch'
 import { Route as AuthenticatedAdminReconciliationRouteImport } from './routes/_authenticated/admin.reconciliation'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated/admin.reviews'
@@ -43,6 +44,7 @@ import { Route as AuthenticatedOrdersIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedOrdersOrderIdRouteImport } from './routes/_authenticated/orders.$orderId'
 import { Route as AuthenticatedSellerEarningsRouteImport } from './routes/_authenticated/seller.earnings'
 import { Route as ApiPublicAssistantRouteImport } from './routes/api/public/assistant'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicRazorpayWebhookRouteImport } from './routes/api/public/razorpay-webhook'
 import { Route as AuthenticatedOrdersOrderIdInvoiceRouteImport } from './routes/_authenticated/orders.$orderId_.invoice'
 import { Route as ApiPublicJobsProcessPaymentsRouteImport } from './routes/api/public/jobs/process-payments'
@@ -170,6 +172,12 @@ const AuthenticatedAdminGrievancesRoute =
     path: '/grievances',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminLaunchRoute =
+  AuthenticatedAdminLaunchRouteImport.update({
+    id: '/launch',
+    path: '/launch',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReconciliationRoute =
   AuthenticatedAdminReconciliationRouteImport.update({
     id: '/reconciliation',
@@ -227,6 +235,11 @@ const ApiPublicAssistantRoute = ApiPublicAssistantRouteImport.update({
   path: '/api/public/assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicRazorpayWebhookRoute =
   ApiPublicRazorpayWebhookRouteImport.update({
     id: '/api/public/razorpay-webhook',
@@ -269,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
+  '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
@@ -278,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/seller/earnings': typeof AuthenticatedSellerEarningsRoute
   '/api/public/assistant': typeof ApiPublicAssistantRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/orders/': typeof AuthenticatedOrdersIndexRoute
@@ -306,6 +321,7 @@ export interface FileRoutesByTo {
   '/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
+  '/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
@@ -315,6 +331,7 @@ export interface FileRoutesByTo {
   '/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/seller/earnings': typeof AuthenticatedSellerEarningsRoute
   '/api/public/assistant': typeof ApiPublicAssistantRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/orders': typeof AuthenticatedOrdersIndexRoute
@@ -346,6 +363,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/disputes': typeof AuthenticatedAdminDisputesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/grievances': typeof AuthenticatedAdminGrievancesRoute
+  '/_authenticated/admin/launch': typeof AuthenticatedAdminLaunchRoute
   '/_authenticated/admin/reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
@@ -355,6 +373,7 @@ export interface FileRoutesById {
   '/_authenticated/orders/$orderId': typeof AuthenticatedOrdersOrderIdRoute
   '/_authenticated/seller/earnings': typeof AuthenticatedSellerEarningsRoute
   '/api/public/assistant': typeof ApiPublicAssistantRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/razorpay-webhook': typeof ApiPublicRazorpayWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/orders/': typeof AuthenticatedOrdersIndexRoute
@@ -386,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/disputes'
     | '/admin/events'
     | '/admin/grievances'
+    | '/admin/launch'
     | '/admin/reconciliation'
     | '/admin/reports'
     | '/admin/reviews'
@@ -395,6 +415,7 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
     | '/seller/earnings'
     | '/api/public/assistant'
+    | '/api/public/health'
     | '/api/public/razorpay-webhook'
     | '/admin/'
     | '/orders/'
@@ -423,6 +444,7 @@ export interface FileRouteTypes {
     | '/admin/disputes'
     | '/admin/events'
     | '/admin/grievances'
+    | '/admin/launch'
     | '/admin/reconciliation'
     | '/admin/reports'
     | '/admin/reviews'
@@ -432,6 +454,7 @@ export interface FileRouteTypes {
     | '/orders/$orderId'
     | '/seller/earnings'
     | '/api/public/assistant'
+    | '/api/public/health'
     | '/api/public/razorpay-webhook'
     | '/admin'
     | '/orders'
@@ -462,6 +485,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/disputes'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/grievances'
+    | '/_authenticated/admin/launch'
     | '/_authenticated/admin/reconciliation'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/reviews'
@@ -471,6 +495,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders/$orderId'
     | '/_authenticated/seller/earnings'
     | '/api/public/assistant'
+    | '/api/public/health'
     | '/api/public/razorpay-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/orders/'
@@ -493,6 +518,7 @@ export interface RootRouteChildren {
   ListingsListingIdRoute: typeof ListingsListingIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   ApiPublicAssistantRoute: typeof ApiPublicAssistantRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicRazorpayWebhookRoute: typeof ApiPublicRazorpayWebhookRoute
   ApiPublicJobsProcessPaymentsRoute: typeof ApiPublicJobsProcessPaymentsRoute
 }
@@ -667,6 +693,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminGrievancesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/launch': {
+      id: '/_authenticated/admin/launch'
+      path: '/launch'
+      fullPath: '/admin/launch'
+      preLoaderRoute: typeof AuthenticatedAdminLaunchRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/reconciliation': {
       id: '/_authenticated/admin/reconciliation'
       path: '/reconciliation'
@@ -737,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/razorpay-webhook': {
       id: '/api/public/razorpay-webhook'
       path: '/api/public/razorpay-webhook'
@@ -765,6 +805,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDisputesRoute: typeof AuthenticatedAdminDisputesRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminGrievancesRoute: typeof AuthenticatedAdminGrievancesRoute
+  AuthenticatedAdminLaunchRoute: typeof AuthenticatedAdminLaunchRoute
   AuthenticatedAdminReconciliationRoute: typeof AuthenticatedAdminReconciliationRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminReviewsRoute: typeof AuthenticatedAdminReviewsRoute
@@ -777,6 +818,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDisputesRoute: AuthenticatedAdminDisputesRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminGrievancesRoute: AuthenticatedAdminGrievancesRoute,
+  AuthenticatedAdminLaunchRoute: AuthenticatedAdminLaunchRoute,
   AuthenticatedAdminReconciliationRoute: AuthenticatedAdminReconciliationRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminReviewsRoute: AuthenticatedAdminReviewsRoute,
@@ -837,6 +879,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListingsListingIdRoute: ListingsListingIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   ApiPublicAssistantRoute: ApiPublicAssistantRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicRazorpayWebhookRoute: ApiPublicRazorpayWebhookRoute,
   ApiPublicJobsProcessPaymentsRoute: ApiPublicJobsProcessPaymentsRoute,
 }

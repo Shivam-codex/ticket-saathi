@@ -1,7 +1,9 @@
 import "./lib/error-capture";
 
+import * as Sentry from "@sentry/cloudflare";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { withSecurityHeaders } from "./lib/security-headers";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,7 +49,7 @@ function isH3SwallowedErrorBody(body: string): boolean {
 // Hosting compresses every response at the edge. Never compress a body (gzip, brotli,
 // CompressionStream) or set content-encoding here or in a server route: the body gets encoded
 // twice and renders garbled.
-export default {
+const appHandler = {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
@@ -60,5 +62,19 @@ export default {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
+  },
+};
+
+const sentryHandler = Sentry.withSentry(
+  () => ({ dsn: process.env["SENTRY_DSN"], environment: process.env["NODE_ENV"] }),
+  appHandler,
+) as ServerEntry;
+
+export default {
+  async fetch(request: Request, env: unknown, ctx: unknown) {
+    const response = process.env["SENTRY_DSN"]
+      ? await sentryHandler.fetch(request, env, ctx)
+      : await appHandler.fetch(request, env, ctx);
+    return withSecurityHeaders(response, request);
   },
 };

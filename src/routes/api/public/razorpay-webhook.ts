@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { verifyRazorpayWebhookSignature } from "@/lib/payments/webhook-security.server";
+import { enforceRequestRateLimit } from "@/lib/rate-limit.server";
 
 async function payloadHash(raw: string): Promise<string> {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
@@ -10,7 +12,10 @@ export const Route = createFileRoute("/api/public/razorpay-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try { enforceRequestRateLimit(request, "razorpay-webhook", 120, 60_000); } catch { return Response.json({ error: "Too many requests" }, { status: 429 }); }
         const rawBody = await request.text();
+        const signatureValid = await verifyRazorpayWebhookSignature(rawBody, request.headers.get("x-razorpay-signature"), process.env["RAZORPAY_WEBHOOK_SECRET"]);
+        if (!signatureValid) return Response.json({ error: "Invalid webhook signature" }, { status: 401 });
         const eventId = request.headers.get("x-razorpay-event-id") ?? `sha256:${await payloadHash(rawBody)}`;
         if (!z.string().min(3).max(255).safeParse(eventId).success) return Response.json({ error: "Invalid event" }, { status: 400 });
         let providerOrderId: string | undefined;

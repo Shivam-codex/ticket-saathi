@@ -29,10 +29,10 @@ type Ev = AdminData["events"][number];
 type Tier = { name: string; rupees: string };
 type Form = {
   id?: string; title: string; category: (typeof CATEGORIES)[number]; venue_id: string; newVenue: { name: string; city: string; state_code: string };
-  organizer: string; description: string; date: string; time: string; endDate: string; endTime: string; image_url: string; tiers: Tier[]; is_resellable: boolean; resale_max_percent: string;
+  organizer: string; description: string; date: string; time: string; endDate: string; endTime: string; image_url: string; tiers: Tier[]; is_resellable: boolean; soft_launch_allowed: boolean; listings_killed: boolean; resale_max_percent: string;
 };
 const NEW = "__new";
-const empty = (): Form => ({ title: "", category: "sports", venue_id: "", newVenue: { name: "", city: "", state_code: "MH" }, organizer: "", description: "", date: "", time: "19:30", endDate: "", endTime: "22:30", image_url: "", tiers: [{ name: "General", rupees: "" }], is_resellable: true, resale_max_percent: "" });
+const empty = (): Form => ({ title: "", category: "sports", venue_id: "", newVenue: { name: "", city: "", state_code: "MH" }, organizer: "", description: "", date: "", time: "19:30", endDate: "", endTime: "22:30", image_url: "", tiers: [{ name: "General", rupees: "" }], is_resellable: true, soft_launch_allowed: true, listings_killed: false, resale_max_percent: "" });
 
 function toForm(e: Ev): Form {
   const ist = new Date(new Date(e.starts_at).getTime() + 330 * 60_000).toISOString();
@@ -40,7 +40,7 @@ function toForm(e: Ev): Form {
   const tiers = (Array.isArray(e.face_value_tiers) ? e.face_value_tiers : []) as { name: string; price_paise: number }[];
   return { id: e.id, title: e.title, category: e.category === "other" ? "sports" : e.category, venue_id: e.venue_id, newVenue: { name: "", city: "", state_code: "MH" }, organizer: e.organizer ?? "", description: e.description ?? "",
     date: ist.slice(0, 10), time: ist.slice(11, 16), endDate: endIst?.slice(0, 10) ?? "", endTime: endIst?.slice(11, 16) ?? "22:30", image_url: e.image_url ?? "", tiers: tiers.map((t) => ({ name: t.name, rupees: String(t.price_paise / 100) })),
-    is_resellable: e.is_resellable, resale_max_percent: e.resale_max_percent == null ? "" : String(e.resale_max_percent) };
+    is_resellable: e.is_resellable, soft_launch_allowed: e.soft_launch_allowed, listings_killed: e.listings_killed, resale_max_percent: e.resale_max_percent == null ? "" : String(e.resale_max_percent) };
 }
 
 function AdminEvents() {
@@ -71,7 +71,7 @@ function AdminEvents() {
         ...(form.venue_id && form.venue_id !== NEW ? { venue_id: form.venue_id } : { new_venue: form.newVenue }),
         ...(form.organizer ? { organizer: form.organizer } : {}), ...(form.description ? { description: form.description } : {}),
         starts_at: `${form.date}T${form.time}:00+05:30`, ends_at: form.endDate ? `${form.endDate}T${form.endTime}:00+05:30` : null, ...(form.image_url ? { image_url: form.image_url } : {}),
-        face_value_tiers: tiers, is_resellable: form.is_resellable,
+        face_value_tiers: tiers, is_resellable: form.is_resellable, soft_launch_allowed: form.soft_launch_allowed, listings_killed: form.listings_killed,
         resale_max_percent: form.resale_max_percent === "" ? null : Number(form.resale_max_percent),
       } });
       toast.success("Event saved"); setForm(null);
@@ -150,6 +150,8 @@ function AdminEvents() {
               </div>
               <label className="flex items-center justify-between rounded-xl border p-3"><span><span className="font-medium">Transfer allowed</span><br /><span className="text-xs text-muted-foreground">Off = organiser blocks resale; listing is disabled.</span></span>
                 <Switch checked={form.is_resellable} onCheckedChange={(v) => up({ is_resellable: v })} /></label>
+              <label className="flex items-center justify-between rounded-xl border p-3"><span><span className="font-medium">Soft-launch allowlist</span><br /><span className="text-xs text-muted-foreground">Only allowlisted transferable events accept listings and purchases during soft launch.</span></span><Switch checked={form.soft_launch_allowed} onCheckedChange={(v) => up({ soft_launch_allowed: v })} /></label>
+              <label className="flex items-center justify-between rounded-xl border border-destructive/40 p-3"><span><span className="font-medium">Kill switch: disable listings</span><br /><span className="text-xs text-muted-foreground">Immediately blocks new listings and checkout for this event.</span></span><Switch checked={form.listings_killed} onCheckedChange={(v) => up({ listings_killed: v })} /></label>
               <div><Label>Resale max % of face value (optional override)</Label>
                 <Input inputMode="numeric" placeholder="Default (state/global rules, usually 100)" value={form.resale_max_percent} onChange={(e) => up({ resale_max_percent: e.target.value.replace(/\D/g, "") })} /></div>
               <Button disabled={busy} onClick={save}>{busy ? "Saving…" : "Save event"}</Button>

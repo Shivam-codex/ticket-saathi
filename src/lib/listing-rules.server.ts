@@ -22,6 +22,8 @@ export type RuleEvent = {
   state_code: string | null;
   /** Highest face-value tier for the event, if tiers exist. */
   max_tier_paise: number | null;
+  /** Soft-launch allowlist and event/state kill switches. */
+  listingOpen?: boolean;
 };
 
 export type ListingRuleInput = {
@@ -38,6 +40,7 @@ export type RejectCode =
   | "SELLER_NOT_VERIFIED"
   | "EVENT_NOT_RESELLABLE"
   | "EVENT_STARTED"
+  | "LAUNCH_CLOSED"
   | "STATE_RESALE_BANNED"
   | "PRICE_ABOVE_CAP"
   | "FACE_ABOVE_TIER"
@@ -92,6 +95,7 @@ export function evaluateListing(input: ListingRuleInput): { ok: boolean; reasons
   if (!input.sellerVerified) reasons.push({ code: "SELLER_NOT_VERIFIED", message: "Verify your mobile number and add payout details before listing." });
   if (!event.is_resellable) reasons.push({ code: "EVENT_NOT_RESELLABLE", message: "The organiser does not allow tickets for this event to be transferred." });
   if (new Date(event.starts_at).getTime() <= input.now.getTime()) reasons.push({ code: "EVENT_STARTED", message: "This event has already started." });
+  if (event.listingOpen === false) reasons.push({ code: "LAUNCH_CLOSED", message: "Listings and checkout are temporarily disabled for this event or its state." });
   if (!cap.allowed) reasons.push({ code: "STATE_RESALE_BANNED", message: `Ticket resale is not permitted for events in ${event.state_code ?? "this state"}.` });
   if (!Number.isInteger(input.quantity) || input.quantity < 1 || input.quantity > 10) reasons.push({ code: "INVALID_QUANTITY", message: "Quantity must be between 1 and 10." });
 

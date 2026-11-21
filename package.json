@@ -11,17 +11,25 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "vitest run src/test",
+    "test:e2e": "playwright test",
+    "seed:staging": "bun scripts/seed-staging.ts",
+    "reset:staging": "bun scripts/reset-staging.ts"
   },
   "overrides": {
     "rolldown": "1.2.1",
-    "shell-quote": ">=1.11.0"
+    "shell-quote": ">=1.11.0",
+    "js-yaml": "4.3.2",
+    "seroval": "1.8.2",
+    "source-map-js": "1.2.4"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.93",
     "@ai-sdk/react": "^4.0.181",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/cloud-auth-js": "^1.3.0",
+    "@marsidev/react-turnstile": "^1.6.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -48,6 +56,8 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@sentry/cloudflare": "^11.14.0",
+    "@sentry/react": "^11.14.0",
     "@streamdown/cjk": "^1.0.5",
     "@streamdown/code": "^2.0.1",
     "@streamdown/math": "^1.0.4",
@@ -71,6 +81,7 @@
     "motion": "^14.14.0",
     "nanoid": "^6.0.2",
     "pdf-lib": "^1.17.1",
+    "posthog-js": "^1.453.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
@@ -87,11 +98,12 @@
     "use-stick-to-bottom": "^1.1.6",
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
-    "zod": "^3.25.76"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.27.2",
+    "@playwright/test": "1.59.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@types/node": "^22.16.5",
@@ -107,10 +119,13 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
+    "js-yaml": "4.3.2",
     "jsdom": "^20.0.3",
     "nitro": "3.0.260603-beta",
     "postgres": "^4.1.1",
     "prettier": "^3.7.3",
+    "seroval": "1.8.2",
+    "source-map-js": "1.2.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "8.1.5",

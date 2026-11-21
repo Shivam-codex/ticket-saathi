@@ -4,6 +4,7 @@ import { DefaultChatTransport, type UIMessage } from "ai";
 import { MessageCircle, TicketCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { assistantPublicConfig } from "@/functions/trust.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { curatedAssistantAnswer } from "@/lib/assistant-fallback";
 import { useI18n } from "@/lib/i18n";
 import { Conversation, ConversationContent, ConversationEmptyState, ConversationScrollButton } from "@/components/ai-elements/conversation";
@@ -14,7 +15,10 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 
 export function HelpWidget() {
   const { t, lang: language } = useI18n(); const [open,setOpen] = useState(false); const [aiEnabled,setAiEnabled] = useState(false); const lastQuestion = useRef("");
-  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public/assistant" }), []);
+  const transport = useMemo(() => new DefaultChatTransport({ api: "/api/public/assistant", headers: async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session ? { Authorization: `Bearer ${data.session.access_token}` } : {};
+  } }), []);
   const { messages, sendMessage, setMessages, status, stop, error, clearError } = useChat({ transport, onError: () => {
     const answer = curatedAssistantAnswer(lastQuestion.current,language);
     setMessages(current => [...current,{ id: `fallback-${Date.now()}`, role: "assistant", parts: [{ type: "text", text: answer }] }]);

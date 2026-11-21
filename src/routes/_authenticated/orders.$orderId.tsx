@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/event-filters";
 import { useI18n } from "@/lib/i18n";
+import { trackMarketplaceEvent } from "@/lib/observability";
 
 type RazorpayCheckout = { open: () => void; on: (event: string, callback: (response: unknown) => void) => void };
 declare global {
@@ -83,6 +84,7 @@ function OrderPage() {
     try {
       const result = await payFn({ data: { order_id: order.id, reference: session.reference, outcome } });
       toast.success(result.status === "cancelled" ? t("pay.released") : t("pay.success"));
+      if (result.status === "ticket_delivered") trackMarketplaceEvent("payment_success", { order_id: order.id, provider: "mock", amount_paise: Number(order.total_paise) });
       setSession(null); await refresh();
     } catch (error) { toast.error(error instanceof Error ? error.message : t("pay.failed")); }
     finally { setBusy(false); }
@@ -91,7 +93,10 @@ function OrderPage() {
     setBusy(true);
     try {
       const result = await confirmRazorpayFn({ data: { order_id: order.id } });
-      if (["ticket_delivered", "completed"].includes(result.status)) toast.success(t("pay.confirmed"));
+      if (["ticket_delivered", "completed"].includes(result.status)) {
+        toast.success(t("pay.confirmed"));
+        trackMarketplaceEvent("payment_success", { order_id: order.id, provider: "razorpay", amount_paise: Number(order.total_paise) });
+      }
       if (result.status === "refunded") toast.success(t("pay.lateRefunded"));
       await refresh();
     } catch { toast.error(t("pay.failed")); }

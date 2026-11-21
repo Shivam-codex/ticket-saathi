@@ -51,3 +51,4 @@ use the editor.
 - Ledger postings, webhook deduplication, refunds and payout transitions run in service-role-only database functions so retries cannot duplicate money movement.
 - Seller payout requires delivered tickets plus buyer entry or 24 hours after a recorded event end without dispute; undelivered orders refund 24 hours after payment.
 - Payment status is accepted only after provider read-back with exact order/amount checks; webhook bodies alone never mark an order paid.
+- Soft-launch invites and event/state listing switches are enforced by database helpers and server functions; admin UI is only a control surface, and production mock payments require an explicit override that launch keeps off.

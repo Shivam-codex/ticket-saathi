@@ -20,6 +20,7 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Can't attend? Resell movie, cricket and concert tickets at or below face value, with Buyer Protection and no hidden fees." },
       { property: "og:title", content: "PassOn — Resell tickets fairly in India" },
       { property: "og:description", content: "Genuine tickets, face-value cap, full price upfront. Buyer Protection on every order." },
+      { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
