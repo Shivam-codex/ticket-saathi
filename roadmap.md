@@ -10,3 +10,6 @@
 - [ ] Payment-aggregator and tax review — blocked on lawyer/CA confirmation before going live
 - [ ] Production GST invoice — blocked: registered legal name, GSTIN and business address not supplied
 - [ ] Redis credentials — optional until supplied; database hold remains the correctness boundary and is tested
+- [ ] Phase 6: disputes, reputation, admin trust dashboard, takedowns and grievance inbox
+- [ ] Phase 6: alerts/waitlist, assistant, notifications, wallet/gate view and group buying
+- [ ] Phase 6 blocked: automatic email delivery requires a verified sender domain; WhatsApp uses free one-tap sharing
