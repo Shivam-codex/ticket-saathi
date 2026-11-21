@@ -5,6 +5,7 @@
 - [ ] Make an admin — blocked: user must sign in once so their account can be given the admin role
 - [x] Phase 3: pricing rules + tests, create listing, verification, seller controls
 - [x] Phase 4: listing detail, tested checkout pricing, atomic 10-minute holds, mock UPI, orders, ticket delivery, reviews, invoice
-- [ ] Real payment provider — later phase; Phase 4 uses the mock adapter
+- [ ] Phase 5: Razorpay/mock adapters, verified webhooks, double-entry ledger, reconciliation, payout release, seller statements
+- [ ] Real payment provider approval — blocked until Razorpay test account is connected and marketplace/split capability is confirmed
 - [ ] Production GST invoice — blocked: registered legal name, GSTIN and business address not supplied
 - [ ] Redis credentials — optional until supplied; database hold remains the correctness boundary and is tested
