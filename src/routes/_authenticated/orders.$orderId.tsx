@@ -4,12 +4,28 @@ import { useServerFn } from "@tanstack/react-start";
 import QRCode from "react-qr-code";
 import { CheckCircle2, Download, FileText, QrCode, ShieldCheck, Smartphone, Star } from "lucide-react";
 import { toast } from "sonner";
-import { cancelCheckout, completeMockPayment, confirmOrderCompleted, getMockPaymentSession, getOrder, reportOrderProblem, reviewSeller } from "@/functions/orders.functions";
+import { cancelCheckout, completeMockPayment, confirmOrderCompleted, confirmRazorpayPayment, getMockPaymentSession, getOrder, reportOrderProblem, reviewSeller, startRazorpayPayment } from "@/functions/orders.functions";
 import { OrderStatusBadge } from "@/components/orders/OrderStatusBadge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/event-filters";
 import { useI18n } from "@/lib/i18n";
+
+type RazorpayCheckout = { open: () => void; on: (event: string, callback: (response: unknown) => void) => void };
+declare global {
+  interface Window { Razorpay?: new (options: Record<string, unknown>) => RazorpayCheckout }
+}
+
+async function loadRazorpayCheckout(): Promise<void> {
+  if (window.Razorpay) return;
+  await new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Could not load Razorpay Checkout"));
+    document.head.appendChild(script);
+  });
+}
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   loader: async ({ params }) => {
@@ -31,6 +47,8 @@ function OrderPage() {
   const router = useRouter();
   const sessionFn = useServerFn(getMockPaymentSession);
   const payFn = useServerFn(completeMockPayment);
+  const startRazorpayFn = useServerFn(startRazorpayPayment);
+  const confirmRazorpayFn = useServerFn(confirmRazorpayPayment);
   const cancelFn = useServerFn(cancelCheckout);
   const completeFn = useServerFn(confirmOrderCompleted);
   const disputeFn = useServerFn(reportOrderProblem);
@@ -69,6 +87,40 @@ function OrderPage() {
     } catch (error) { toast.error(error instanceof Error ? error.message : t("pay.failed")); }
     finally { setBusy(false); }
   };
+  const confirmRazorpay = async () => {
+    setBusy(true);
+    try {
+      const result = await confirmRazorpayFn({ data: { order_id: order.id } });
+      if (["ticket_delivered", "completed"].includes(result.status)) toast.success(t("pay.confirmed"));
+      if (result.status === "refunded") toast.success(t("pay.lateRefunded"));
+      await refresh();
+    } catch { toast.error(t("pay.failed")); }
+    finally { setBusy(false); }
+  };
+  const startRazorpay = async () => {
+    setBusy(true);
+    try {
+      const config = await startRazorpayFn({ data: { order_id: order.id } });
+      if (!config.keyId) throw new Error("Razorpay key unavailable");
+      await loadRazorpayCheckout();
+      if (!window.Razorpay) throw new Error("Razorpay Checkout unavailable");
+      const checkout = new window.Razorpay({
+        key: config.keyId,
+        order_id: config.providerOrderId,
+        amount: config.amountPaise,
+        currency: config.currency,
+        name: "PassOn",
+        description: order.listings?.events?.title ?? "Ticket order",
+        prefill: { name: config.buyerName, contact: config.buyerPhone },
+        notes: { orderId: order.id },
+        handler: () => { void confirmRazorpay(); },
+        modal: { ondismiss: () => { void confirmRazorpay(); } },
+      });
+      checkout.on("payment.failed", () => toast.error(t("pay.failed")));
+      checkout.open();
+    } catch (error) { toast.error(error instanceof Error ? error.message : t("pay.failed")); }
+    finally { setBusy(false); }
+  };
   const action = async (fn: () => Promise<unknown>, message: string) => {
     setBusy(true);
     try { await fn(); toast.success(message); await refresh(); }
@@ -84,7 +136,14 @@ function OrderPage() {
 
       <div className="mt-6 grid gap-6 md:grid-cols-[1fr_320px]">
         <div className="space-y-5">
-          {isBuyer && order.status === "payment_pending" && <section className="rounded-3xl border bg-card p-6">
+          {isBuyer && order.status === "payment_pending" && order.payment_provider === "razorpay" && <section className="rounded-3xl border bg-card p-6">
+            <div className="flex items-center justify-between"><h2 className="text-xl font-bold">Razorpay</h2><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">{t("pay.test")}</span></div>
+            <p className="mt-1 text-sm text-muted-foreground">{t("pay.razorpay.d")}</p>
+            <Button onClick={startRazorpay} disabled={busy || seconds === 0} className="mt-5 w-full">{t("pay.razorpay")}</Button>
+            <Button variant="ghost" disabled={busy} onClick={() => action(() => cancelFn({ data: { order_id: order.id } }), t("pay.released"))} className="mt-3 w-full">{t("pay.cancel")}</Button>
+          </section>}
+
+          {isBuyer && order.status === "payment_pending" && order.payment_provider === "mock" && <section className="rounded-3xl border bg-card p-6">
             <div className="flex items-center justify-between"><h2 className="text-xl font-bold">{t("pay.title")}</h2><span className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold">{t("pay.mock")}</span></div>
             <p className="mt-1 text-sm text-muted-foreground">{t("pay.mock.d")}</p>
             {!session ? <Button onClick={showPayment} disabled={busy || seconds === 0} className="mt-5 w-full"><QrCode className="h-4 w-4" />{t("pay.show")}</Button> : <div className="mt-5 space-y-5">
@@ -96,7 +155,8 @@ function OrderPage() {
 
           {ticket && <section className="rounded-3xl border border-success bg-card p-6"><h2 className="flex items-center gap-2 text-xl font-bold text-success"><CheckCircle2 className="h-5 w-5" />{t("delivery.title")}</h2><p className="mt-2 text-sm text-muted-foreground">{t("delivery.d")}</p><Button asChild className="mt-4"><a href={ticket.url} target="_blank" rel="noreferrer"><Download className="h-4 w-4" />{t("delivery.open")}</a></Button><p className="mt-2 text-xs text-muted-foreground">{t("delivery.expiry")}</p></section>}
 
-          {isBuyer && order.status === "ticket_delivered" && <Button disabled={busy} onClick={() => action(() => completeFn({ data: { order_id: order.id } }), t("order.completed"))}>{t("order.confirm")}</Button>}
+          {isBuyer && order.status === "ticket_delivered" && <div><Button disabled={busy} onClick={() => action(() => completeFn({ data: { order_id: order.id } }), t("order.completed"))}>{t("order.confirm")}</Button><p className="mt-2 text-xs text-muted-foreground">{t("order.entryHint")}</p></div>}
+          {!isBuyer && order.payout_released_at && <p className="rounded-2xl bg-secondary p-4 text-sm font-semibold text-success">{t("order.payoutReleased")}</p>}
 
           {isBuyer && ["paid", "ticket_delivered"].includes(order.status) && <section className="rounded-3xl border bg-card p-6"><Button variant="outline" onClick={() => setDisputing((v) => !v)}>{t("dispute.cta")}</Button>{disputing && <div className="mt-4"><Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("dispute.placeholder")} maxLength={2000} /><Button disabled={busy || reason.trim().length < 5} variant="destructive" className="mt-3" onClick={() => action(() => disputeFn({ data: { order_id: order.id, reason } }), t("dispute.saved"))}>{t("dispute.submit")}</Button></div>}</section>}
 

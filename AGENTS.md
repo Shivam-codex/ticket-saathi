@@ -47,4 +47,7 @@ use the editor.
 - Verification decisions: duplicate → rejected, trust score ≥ AUTO_APPROVE_SCORE → active, else admin review; AI failure lowers the score instead of blocking.
 - Checkout reserves a listing through an atomic database update and a partial unique live-order index; optional Upstash Redis is an additional lock, never the correctness boundary — prevents double-selling even when Redis is unavailable.
 - Order state changes go through the service-role-only `transition_order` SQL function, which validates transitions and appends `order_events`; buyers and sellers never write order status directly.
-- Payment providers implement the adapter contract; Phase 4 uses only the mock UPI adapter, and GST invoices stay visibly draft until registered business tax details are configured.
+- Payment providers implement the adapter contract; mock is the default and Razorpay is blocked until approved provider-held Route transfers are configured, and GST invoices stay visibly draft until registered business tax details are configured.
+- Ledger postings, webhook deduplication, refunds and payout transitions run in service-role-only database functions so retries cannot duplicate money movement.
+- Seller payout requires delivered tickets plus buyer entry or 24 hours after a recorded event end without dispute; undelivered orders refund 24 hours after payment.
+- Payment status is accepted only after provider read-back with exact order/amount checks; webhook bodies alone never mark an order paid.

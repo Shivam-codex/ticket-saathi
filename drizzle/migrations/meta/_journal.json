@@ -64,6 +64,48 @@
       "when": 1795240878543,
       "tag": "0008_phase4_buyer_order_listing_read",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795242075808,
+      "tag": "0009_phase5_financial_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795242120643,
+      "tag": "0010_phase5_payment_posting_functions",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795242191691,
+      "tag": "0011_phase5_checkout_provider_tax",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795242230919,
+      "tag": "0012_phase5_entry_and_late_refund",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795242579021,
+      "tag": "0013_phase5_entry_payout_row_fix",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1795242652072,
+      "tag": "0014_phase5_require_delivery_for_payout",
+      "breakpoints": true
     }
   ]
 }

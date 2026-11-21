@@ -2,6 +2,10 @@ export type FeeConfig = {
   buyerFeeBps: number;
   sellerFeeBps: number;
   gstBps: number;
+  /** Disabled by default; rates and applicability require CA confirmation. */
+  taxEnabled?: boolean;
+  tcsBps?: number;
+  tdsBps?: number;
 };
 
 export type OrderQuote = {
@@ -15,6 +19,9 @@ export type OrderQuote = {
   gstOnFeesPaise: number;
   buyerTotalPaise: number;
   sellerNetPaise: number;
+  tcsPaise: number;
+  tdsPaise: number;
+  sellerPayoutPaise: number;
 };
 
 function integer(value: number, name: string, min = 0): void {
@@ -50,8 +57,12 @@ export function calculateOrderQuote(unitPricePaise: number, quantity: number, co
   const sellerFeeGstPaise = basisPoints(sellerFeePaise, config.gstBps);
   const buyerTotalPaise = subtotalPaise + buyerFeePaise + buyerFeeGstPaise;
   const sellerNetPaise = subtotalPaise - sellerFeePaise - sellerFeeGstPaise;
+  const taxEnabled = config.taxEnabled ?? false;
+  const tcsPaise = taxEnabled ? basisPoints(subtotalPaise, config.tcsBps ?? 0) : 0;
+  const tdsPaise = taxEnabled ? basisPoints(subtotalPaise, config.tdsBps ?? 0) : 0;
+  const sellerPayoutPaise = sellerNetPaise - tcsPaise - tdsPaise;
   if (!Number.isSafeInteger(buyerTotalPaise)) throw new Error("Buyer total exceeds safe integer range");
-  if (sellerNetPaise < 0) throw new Error("Seller fees cannot exceed the ticket subtotal");
+  if (sellerNetPaise < 0 || sellerPayoutPaise < 0) throw new Error("Seller fees and taxes cannot exceed the ticket subtotal");
 
   return {
     quantity,
@@ -64,5 +75,8 @@ export function calculateOrderQuote(unitPricePaise: number, quantity: number, co
     gstOnFeesPaise: buyerFeeGstPaise + sellerFeeGstPaise,
     buyerTotalPaise,
     sellerNetPaise,
+    tcsPaise,
+    tdsPaise,
+    sellerPayoutPaise,
   };
 }

@@ -1,5 +1,5 @@
 import type React from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -164,6 +164,7 @@ function Settings() {
         <Label htmlFor="payment-upi">{t("checkout.savedUpi")}</Label>
         <div className="mt-2 flex gap-2"><Input id="payment-upi" placeholder="name@okaxis" value={paymentUpi} onChange={(e) => setPaymentUpi(e.target.value)} /><Button onClick={savePaymentPreference}>{t("settings.save")}</Button></div>
         <p className="mt-2 text-sm text-muted-foreground">{t("settings.payments.d")}</p>
+        <Button asChild variant="outline" className="mt-4"><Link to="/seller/earnings">{t("earnings.title")}</Link></Button>
       </Section>
 
       <Section title={t("settings.privacy")}>

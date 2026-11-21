@@ -5,7 +5,8 @@
 - [ ] Make an admin — blocked: user must sign in once so their account can be given the admin role
 - [x] Phase 3: pricing rules + tests, create listing, verification, seller controls
 - [x] Phase 4: listing detail, tested checkout pricing, atomic 10-minute holds, mock UPI, orders, ticket delivery, reviews, invoice
-- [ ] Phase 5: Razorpay/mock adapters, verified webhooks, double-entry ledger, reconciliation, payout release, seller statements
-- [ ] Real payment provider approval — blocked until Razorpay test account is connected and marketplace/split capability is confirmed
+- [x] Phase 5: Razorpay/mock adapters, provider-readback webhooks, double-entry ledger, reconciliation, payout release, seller statements
+- [ ] Real payment provider approval — Razorpay test account connected; blocked until Route/linked seller accounts and compliant provider-held transfers are approved
+- [ ] Payment-aggregator and tax review — blocked on lawyer/CA confirmation before going live
 - [ ] Production GST invoice — blocked: registered legal name, GSTIN and business address not supplied
 - [ ] Redis credentials — optional until supplied; database hold remains the correctness boundary and is tested

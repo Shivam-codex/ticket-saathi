@@ -144,6 +144,7 @@ export type Database = {
           category: Database["public"]["Enums"]["event_category"]
           created_at: string
           description: string | null
+          ends_at: string | null
           face_value_tiers: Json
           id: string
           image_url: string | null
@@ -160,6 +161,7 @@ export type Database = {
           category: Database["public"]["Enums"]["event_category"]
           created_at?: string
           description?: string | null
+          ends_at?: string | null
           face_value_tiers?: Json
           id?: string
           image_url?: string | null
@@ -176,6 +178,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["event_category"]
           created_at?: string
           description?: string | null
+          ends_at?: string | null
           face_value_tiers?: Json
           id?: string
           image_url?: string | null
@@ -241,9 +244,16 @@ export type Database = {
           amount_paise: number
           created_at: string
           direction: string
+          entry_type: string
           id: string
+          idempotency_key: string | null
           memo: string | null
+          metadata: Json
           order_id: string | null
+          provider_ref: string | null
+          tcs_paise: number
+          tds_paise: number
+          transaction_group: string
           user_id: string | null
         }
         Insert: {
@@ -251,9 +261,16 @@ export type Database = {
           amount_paise: number
           created_at?: string
           direction: string
+          entry_type?: string
           id?: string
+          idempotency_key?: string | null
           memo?: string | null
+          metadata?: Json
           order_id?: string | null
+          provider_ref?: string | null
+          tcs_paise?: number
+          tds_paise?: number
+          transaction_group?: string
           user_id?: string | null
         }
         Update: {
@@ -261,9 +278,16 @@ export type Database = {
           amount_paise?: number
           created_at?: string
           direction?: string
+          entry_type?: string
           id?: string
+          idempotency_key?: string | null
           memo?: string | null
+          metadata?: Json
           order_id?: string | null
+          provider_ref?: string | null
+          tcs_paise?: number
+          tds_paise?: number
+          transaction_group?: string
           user_id?: string | null
         }
         Relationships: [
@@ -531,6 +555,8 @@ export type Database = {
           buyer_upi_id: string | null
           created_at: string
           delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
           fee_config_id: string | null
           hold_expires_at: string | null
           id: string
@@ -542,13 +568,19 @@ export type Database = {
           payment_method: string
           payment_provider: string
           payment_ref: string | null
+          payout_released_at: string | null
           price_paise: number
+          provider_order_ref: string | null
           quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
           seller_fee_gst_paise: number
           seller_fee_paise: number
           seller_id: string | null
           seller_net_paise: number
           status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
           total_paise: number
           updated_at: string
         }
@@ -562,6 +594,8 @@ export type Database = {
           buyer_upi_id?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_due_at?: string | null
+          entry_confirmed_at?: string | null
           fee_config_id?: string | null
           hold_expires_at?: string | null
           id?: string
@@ -573,13 +607,19 @@ export type Database = {
           payment_method?: string
           payment_provider?: string
           payment_ref?: string | null
+          payout_released_at?: string | null
           price_paise: number
+          provider_order_ref?: string | null
           quantity: number
+          refund_provider_ref?: string | null
+          refunded_at?: string | null
           seller_fee_gst_paise: number
           seller_fee_paise: number
           seller_id?: string | null
           seller_net_paise: number
           status?: Database["public"]["Enums"]["order_status"]
+          tcs_paise?: number
+          tds_paise?: number
           total_paise: number
           updated_at?: string
         }
@@ -593,6 +633,8 @@ export type Database = {
           buyer_upi_id?: string | null
           created_at?: string
           delivered_at?: string | null
+          delivery_due_at?: string | null
+          entry_confirmed_at?: string | null
           fee_config_id?: string | null
           hold_expires_at?: string | null
           id?: string
@@ -604,13 +646,19 @@ export type Database = {
           payment_method?: string
           payment_provider?: string
           payment_ref?: string | null
+          payout_released_at?: string | null
           price_paise?: number
+          provider_order_ref?: string | null
           quantity?: number
+          refund_provider_ref?: string | null
+          refunded_at?: string | null
           seller_fee_gst_paise?: number
           seller_fee_paise?: number
           seller_id?: string | null
           seller_net_paise?: number
           status?: Database["public"]["Enums"]["order_status"]
+          tcs_paise?: number
+          tds_paise?: number
           total_paise?: number
           updated_at?: string
         }
@@ -645,36 +693,133 @@ export type Database = {
           },
         ]
       }
+      payment_operations: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          operation: string
+          order_id: string
+          provider: string
+          provider_ref: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          operation: string
+          order_id: string
+          provider: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          operation?: string
+          order_id?: string
+          provider?: string
+          provider_ref?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_operations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_webhook_events: {
+        Row: {
+          error: string | null
+          event_id: string
+          order_id: string | null
+          payload_hash: string
+          processed_at: string | null
+          provider: string
+          received_at: string
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          event_id: string
+          order_id?: string | null
+          payload_hash: string
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          status?: string
+        }
+        Update: {
+          error?: string | null
+          event_id?: string
+          order_id?: string | null
+          payload_hash?: string
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_webhook_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payouts: {
         Row: {
           amount_paise: number
           created_at: string
+          failure_reason: string | null
           id: string
           order_id: string | null
+          provider: string
           provider_ref: string | null
+          released_at: string | null
           scheduled_for: string | null
           seller_id: string | null
           status: string
+          updated_at: string
         }
         Insert: {
           amount_paise: number
           created_at?: string
+          failure_reason?: string | null
           id?: string
           order_id?: string | null
+          provider?: string
           provider_ref?: string | null
+          released_at?: string | null
           scheduled_for?: string | null
           seller_id?: string | null
           status?: string
+          updated_at?: string
         }
         Update: {
           amount_paise?: number
           created_at?: string
+          failure_reason?: string | null
           id?: string
           order_id?: string | null
+          provider?: string
           provider_ref?: string | null
+          released_at?: string | null
           scheduled_for?: string | null
           seller_id?: string | null
           status?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -706,6 +851,7 @@ export type Database = {
           preferred_lang: string
           preferred_payment_method: string
           profile_completed: boolean
+          razorpay_route_account_id: string | null
           saved_upi_id: string | null
           state_code: string | null
           updated_at: string
@@ -722,6 +868,7 @@ export type Database = {
           preferred_lang?: string
           preferred_payment_method?: string
           profile_completed?: boolean
+          razorpay_route_account_id?: string | null
           saved_upi_id?: string | null
           state_code?: string | null
           updated_at?: string
@@ -738,6 +885,7 @@ export type Database = {
           preferred_lang?: string
           preferred_payment_method?: string
           profile_completed?: boolean
+          razorpay_route_account_id?: string | null
           saved_upi_id?: string | null
           state_code?: string | null
           updated_at?: string
@@ -847,6 +995,33 @@ export type Database = {
           },
         ]
       }
+      tax_config: {
+        Row: {
+          created_at: string
+          effective_from: string
+          enabled: boolean
+          id: string
+          tcs_bps: number
+          tds_bps: number
+        }
+        Insert: {
+          created_at?: string
+          effective_from?: string
+          enabled?: boolean
+          id?: string
+          tcs_bps?: number
+          tds_bps?: number
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          enabled?: boolean
+          id?: string
+          tcs_bps?: number
+          tds_bps?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -921,6 +1096,113 @@ export type Database = {
     }
     Functions: {
       become_seller: { Args: never; Returns: boolean }
+      begin_webhook: {
+        Args: {
+          p_event_id: string
+          p_order_id: string
+          p_payload_hash: string
+          p_provider: string
+        }
+        Returns: boolean
+      }
+      claim_payment_operation: {
+        Args: { p_operation: string; p_order_id: string; p_provider: string }
+        Returns: boolean
+      }
+      claim_payout: {
+        Args: { p_payout_id: string }
+        Returns: {
+          amount_paise: number
+          created_at: string
+          failure_reason: string | null
+          id: string
+          order_id: string | null
+          provider: string
+          provider_ref: string | null
+          released_at: string | null
+          scheduled_for: string | null
+          seller_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payouts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      complete_payout: {
+        Args: { p_payout_id: string; p_provider_ref: string }
+        Returns: {
+          amount_paise: number
+          created_at: string
+          failure_reason: string | null
+          id: string
+          order_id: string | null
+          provider: string
+          provider_ref: string | null
+          released_at: string | null
+          scheduled_for: string | null
+          seller_id: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payouts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_buyer_entry: {
+        Args: { p_buyer_id: string; p_order_id: string }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          payout_released_at: string | null
+          price_paise: number
+          provider_order_ref: string | null
+          quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_checkout_order: {
         Args: {
           p_buyer_fee_gst_paise: number
@@ -951,6 +1233,8 @@ export type Database = {
           buyer_upi_id: string | null
           created_at: string
           delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
           fee_config_id: string | null
           hold_expires_at: string | null
           id: string
@@ -962,13 +1246,88 @@ export type Database = {
           payment_method: string
           payment_provider: string
           payment_ref: string | null
+          payout_released_at: string | null
           price_paise: number
+          provider_order_ref: string | null
           quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
           seller_fee_gst_paise: number
           seller_fee_paise: number
           seller_id: string | null
           seller_net_paise: number
           status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_checkout_order_v2: {
+        Args: {
+          p_buyer_fee_gst_paise: number
+          p_buyer_fee_paise: number
+          p_buyer_id: string
+          p_buyer_name: string
+          p_buyer_phone: string
+          p_buyer_state_code: string
+          p_buyer_upi_id: string
+          p_fee_config_id: string
+          p_idempotency_key: string
+          p_listing_id: string
+          p_payment_method: string
+          p_payment_provider: string
+          p_quantity: number
+          p_seller_fee_gst_paise: number
+          p_seller_fee_paise: number
+          p_seller_net_paise: number
+          p_tcs_paise: number
+          p_tds_paise: number
+          p_total_paise: number
+          p_unit_price_paise: number
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          payout_released_at: string | null
+          price_paise: number
+          provider_order_ref: string | null
+          quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
           total_paise: number
           updated_at: string
         }
@@ -980,6 +1339,18 @@ export type Database = {
         }
       }
       expire_started_listings: { Args: never; Returns: number }
+      fail_payment_operation: {
+        Args: { p_error: string; p_operation: string; p_order_id: string }
+        Returns: undefined
+      }
+      fail_payout: {
+        Args: { p_error: string; p_payout_id: string }
+        Returns: undefined
+      }
+      finish_webhook: {
+        Args: { p_error?: string; p_event_id: string; p_provider: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -988,6 +1359,165 @@ export type Database = {
         Returns: boolean
       }
       is_seller_ready: { Args: { _user_id: string }; Returns: boolean }
+      record_late_refunded_payment: {
+        Args: {
+          p_actor_id: string
+          p_order_id: string
+          p_payment_ref: string
+          p_refund_ref: string
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          payout_released_at: string | null
+          price_paise: number
+          provider_order_ref: string | null
+          quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_order_payment: {
+        Args: {
+          p_actor_id: string
+          p_delivery_hours?: number
+          p_order_id: string
+          p_payment_ref: string
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          payout_released_at: string | null
+          price_paise: number
+          provider_order_ref: string | null
+          quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_order_refund: {
+        Args: {
+          p_actor_id: string
+          p_note: string
+          p_order_id: string
+          p_refund_ref: string
+        }
+        Returns: {
+          buyer_fee_gst_paise: number
+          buyer_fee_paise: number
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          buyer_state_code: string | null
+          buyer_upi_id: string | null
+          created_at: string
+          delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
+          fee_config_id: string | null
+          hold_expires_at: string | null
+          id: string
+          idempotency_key: string | null
+          invoice_issued_at: string | null
+          invoice_number: string | null
+          listing_id: string
+          paid_at: string | null
+          payment_method: string
+          payment_provider: string
+          payment_ref: string | null
+          payout_released_at: string | null
+          price_paise: number
+          provider_order_ref: string | null
+          quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
+          seller_fee_gst_paise: number
+          seller_fee_paise: number
+          seller_id: string | null
+          seller_net_paise: number
+          status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
+          total_paise: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       release_checkout_order: {
         Args: { p_actor_id: string; p_order_id: string; p_reason: string }
         Returns: {
@@ -1000,6 +1530,8 @@ export type Database = {
           buyer_upi_id: string | null
           created_at: string
           delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
           fee_config_id: string | null
           hold_expires_at: string | null
           id: string
@@ -1011,13 +1543,19 @@ export type Database = {
           payment_method: string
           payment_provider: string
           payment_ref: string | null
+          payout_released_at: string | null
           price_paise: number
+          provider_order_ref: string | null
           quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
           seller_fee_gst_paise: number
           seller_fee_paise: number
           seller_id: string | null
           seller_net_paise: number
           status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
           total_paise: number
           updated_at: string
         }
@@ -1056,6 +1594,8 @@ export type Database = {
           buyer_upi_id: string | null
           created_at: string
           delivered_at: string | null
+          delivery_due_at: string | null
+          entry_confirmed_at: string | null
           fee_config_id: string | null
           hold_expires_at: string | null
           id: string
@@ -1067,13 +1607,19 @@ export type Database = {
           payment_method: string
           payment_provider: string
           payment_ref: string | null
+          payout_released_at: string | null
           price_paise: number
+          provider_order_ref: string | null
           quantity: number
+          refund_provider_ref: string | null
+          refunded_at: string | null
           seller_fee_gst_paise: number
           seller_fee_paise: number
           seller_id: string | null
           seller_net_paise: number
           status: Database["public"]["Enums"]["order_status"]
+          tcs_paise: number
+          tds_paise: number
           total_paise: number
           updated_at: string
         }

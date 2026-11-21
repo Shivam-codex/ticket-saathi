@@ -7,7 +7,7 @@ import type { RedisConfig } from "@/lib/redis-lock.server";
 
 type Ctx = { supabase: typeof supabase; userId: string };
 
-const listingColumns = "id, seller_id, event_id, section, seat_info, quantity, face_value_paise, price_paise, status, verification_status, trust_score, events(id, title, category, starts_at, image_url, is_resellable, venues(name, city, state_code, address))";
+const listingColumns = "id, seller_id, event_id, section, seat_info, quantity, face_value_paise, price_paise, status, verification_status, trust_score, events(id, title, category, starts_at, ends_at, image_url, is_resellable, venues(name, city, state_code, address))";
 
 async function loadListingQuote(client: typeof supabase, id: string) {
   const { data: listing, error } = await client.from("listings").select(listingColumns).eq("id", id).eq("status", "active").maybeSingle();
@@ -52,7 +52,15 @@ export const getCheckoutBootstrap = createServerFn({ method: "GET" })
     ]);
     if (!details) return null;
     if (details.listing.seller_id === context.userId) throw new Error("You cannot buy your own ticket");
-    return { ...details, profile: profile.data };
+    const { configuredPaymentProvider } = await import("@/lib/payments/provider.server");
+    const paymentProvider = configuredPaymentProvider();
+    let providerReady = true;
+    if (paymentProvider === "razorpay") {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: seller } = await supabaseAdmin.from("profiles").select("razorpay_route_account_id").eq("id", details.listing.seller_id).maybeSingle();
+      providerReady = !!seller?.razorpay_route_account_id;
+    }
+    return { ...details, profile: profile.data, paymentProvider, providerReady };
   });
 
 const checkoutInput = z.object({
@@ -78,7 +86,26 @@ export const createCheckout = createServerFn({ method: "POST" })
     const details = await loadListingQuote(context.supabase, data.listing_id);
     if (!details) return { ok: false as const, reason: "unavailable" as const };
     if (details.listing.seller_id === context.userId) return { ok: false as const, reason: "own_listing" as const };
-    const { data: profile } = await context.supabase.from("profiles").select("state_code").eq("id", context.userId).maybeSingle();
+    const [{ data: profile }, { data: tax }] = await Promise.all([
+      context.supabase.from("profiles").select("state_code").eq("id", context.userId).maybeSingle(),
+      context.supabase.from("tax_config").select("enabled, tcs_bps, tds_bps").order("effective_from", { ascending: false }).limit(1).maybeSingle(),
+    ]);
+    const { calculateOrderQuote } = await import("@/lib/pricing.server");
+    const q = calculateOrderQuote(Number(details.listing.price_paise), details.listing.quantity, {
+      buyerFeeBps: details.feeConfig.buyer_fee_bps,
+      sellerFeeBps: details.feeConfig.seller_fee_bps,
+      gstBps: details.feeConfig.gst_bps,
+      taxEnabled: tax?.enabled ?? false,
+      tcsBps: tax?.tcs_bps ?? 0,
+      tdsBps: tax?.tds_bps ?? 0,
+    });
+    const { configuredPaymentProvider } = await import("@/lib/payments/provider.server");
+    const provider = configuredPaymentProvider();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (provider === "razorpay") {
+      const { data: seller } = await supabaseAdmin.from("profiles").select("razorpay_route_account_id").eq("id", details.listing.seller_id).maybeSingle();
+      if (!seller?.razorpay_route_account_id) return { ok: false as const, reason: "provider_unavailable" as const };
+    }
 
     const redisUrl = process.env["UPSTASH_REDIS_REST_URL"];
     const redisToken = process.env["UPSTASH_REDIS_REST_TOKEN"];
@@ -89,9 +116,7 @@ export const createCheckout = createServerFn({ method: "POST" })
       if (!acquired) return { ok: false as const, reason: "unavailable" as const };
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const q = details.quote;
-    const result = await supabaseAdmin.rpc("create_checkout_order", {
+    const result = await supabaseAdmin.rpc("create_checkout_order_v2", {
       p_listing_id: data.listing_id,
       p_buyer_id: context.userId,
       p_quantity: details.listing.quantity,
@@ -103,12 +128,15 @@ export const createCheckout = createServerFn({ method: "POST" })
       p_seller_fee_gst_paise: q.sellerFeeGstPaise,
       p_total_paise: q.buyerTotalPaise,
       p_seller_net_paise: q.sellerNetPaise,
+      p_tcs_paise: q.tcsPaise,
+      p_tds_paise: q.tdsPaise,
       p_fee_config_id: details.feeConfigId,
       p_buyer_name: data.buyer_name,
       p_buyer_phone: phone,
       p_buyer_state_code: profile?.state_code ?? "",
       p_buyer_upi_id: upi ?? "",
       p_payment_method: "upi",
+      p_payment_provider: provider,
     });
     const order = result.data as typeof result.data | null;
     if (result.error || !order?.id) {
@@ -125,7 +153,7 @@ export const createCheckout = createServerFn({ method: "POST" })
 
 async function readOrder(ctx: Ctx, id: string) {
   const { data, error } = await ctx.supabase.from("orders")
-    .select("*, listings(id, section, seat_info, quantity, verification_status, trust_score, events(id, title, starts_at, image_url, venues(name, city, state_code, address)))")
+    .select("*, listings(id, section, seat_info, quantity, verification_status, trust_score, events(id, title, starts_at, ends_at, image_url, venues(name, city, state_code, address)))")
     .eq("id", id).maybeSingle();
   if (error) throw new Error("Could not load order");
   return data;
@@ -164,6 +192,12 @@ export const getOrder = createServerFn({ method: "GET" })
     let order = await readOrder(context, data.id);
     if (!order) return null;
     const isBuyer = order.buyer_id === context.userId;
+    if (isBuyer && order.status === "payment_pending" && order.payment_provider === "razorpay" && order.provider_order_ref) {
+      const { confirmRazorpayOrder } = await import("@/lib/payments/process.server");
+      await confirmRazorpayOrder(order.id, context.userId).catch(() => null);
+      order = await readOrder(context, data.id);
+      if (!order) return null;
+    }
     if (isBuyer && order.status === "payment_pending" && order.hold_expires_at && new Date(order.hold_expires_at).getTime() <= Date.now()) {
       await releaseOrder(context, order, "Reservation expired", redisFromEnvironment());
       order = await readOrder(context, data.id);
@@ -191,6 +225,7 @@ export const getMockPaymentSession = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const order = await readOrder(context, data.order_id);
     if (!order || order.buyer_id !== context.userId) throw new Error("Order not found");
+    if (order.payment_provider !== "mock") throw new Error("This order uses Razorpay");
     if (order.status !== "payment_pending") throw new Error("This order is not awaiting payment");
     if (!order.hold_expires_at || new Date(order.hold_expires_at).getTime() <= Date.now()) {
       await releaseOrder(context, order, "Reservation expired", redisFromEnvironment());
@@ -198,6 +233,47 @@ export const getMockPaymentSession = createServerFn({ method: "POST" })
     }
     const { mockPaymentAdapter } = await import("@/lib/payments/mock.server");
     return mockPaymentAdapter.createUpiSession({ orderId: order.id, amountPaise: Number(order.total_paise), buyerUpiId: order.buyer_upi_id || null });
+  });
+
+export const startRazorpayPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const order = await readOrder(context, data.order_id);
+    if (!order || order.buyer_id !== context.userId || order.payment_provider !== "razorpay" || order.status !== "payment_pending") throw new Error("This order is not awaiting Razorpay payment");
+    if (!order.hold_expires_at || new Date(order.hold_expires_at).getTime() <= Date.now()) throw new Error("This reservation has expired");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: seller } = await supabaseAdmin.from("profiles").select("razorpay_route_account_id").eq("id", order.seller_id ?? "").maybeSingle();
+    const { getPaymentProvider } = await import("@/lib/payments/provider.server");
+    const provider = getPaymentProvider("razorpay");
+    let providerOrderId = order.provider_order_ref;
+    let keyId = process.env["RAZORPAY_CONNECTION_KEY_ID"] ?? null;
+    if (!providerOrderId) {
+      const created = await provider.createOrder({
+        orderId: order.id,
+        amountPaise: Number(order.total_paise),
+        sellerAmountPaise: Number(order.seller_net_paise - order.tcs_paise - order.tds_paise),
+        sellerRouteAccountId: seller?.razorpay_route_account_id ?? null,
+        buyerName: order.buyer_name ?? "",
+        buyerPhone: order.buyer_phone ?? "",
+      });
+      providerOrderId = created.providerOrderId;
+      keyId = created.keyId;
+      const updated = await supabaseAdmin.from("orders").update({ provider_order_ref: providerOrderId }).eq("id", order.id).eq("status", "payment_pending");
+      if (updated.error) throw new Error("Could not save Razorpay order reference");
+    }
+    return { providerOrderId, keyId, amountPaise: Number(order.total_paise), currency: "INR" as const, buyerName: order.buyer_name ?? "", buyerPhone: order.buyer_phone ?? "" };
+  });
+
+export const confirmRazorpayPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const order = await readOrder(context, data.order_id);
+    if (!order || order.buyer_id !== context.userId) throw new Error("Order not found");
+    const { confirmRazorpayOrder } = await import("@/lib/payments/process.server");
+    const updated = await confirmRazorpayOrder(order.id, context.userId);
+    return { ok: true as const, status: updated.status };
   });
 
 export const completeMockPayment = createServerFn({ method: "POST" })
@@ -220,15 +296,13 @@ export const completeMockPayment = createServerFn({ method: "POST" })
     const { mockPaymentAdapter } = await import("@/lib/payments/mock.server");
     const payment = mockPaymentAdapter.completeMockPayment(data.reference);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const paid = await supabaseAdmin.rpc("transition_order", { p_order_id: order.id, p_expected: "payment_pending", p_next: "paid", p_actor_id: context.userId, p_note: "Mock UPI payment successful", p_payment_ref: payment.providerRef });
+    const paid = await supabaseAdmin.rpc("record_order_payment", { p_order_id: order.id, p_payment_ref: payment.providerRef, p_actor_id: context.userId, p_delivery_hours: 24 });
     if (paid.error) throw new Error("Could not confirm payment");
-    const delivered = await supabaseAdmin.rpc("transition_order", { p_order_id: order.id, p_expected: "paid", p_next: "ticket_delivered", p_actor_id: context.userId, p_note: "Private ticket delivery enabled" });
-    if (delivered.error) throw new Error("Payment recorded; ticket delivery can be retried");
     if (redis && order.idempotency_key) {
       const { releaseRedisCheckoutLock } = await import("@/lib/redis-lock.server");
       await releaseRedisCheckoutLock(redis, order.listing_id, order.idempotency_key).catch(() => undefined);
     }
-    return { ok: true as const, status: "ticket_delivered" as const };
+    return { ok: true as const, status: paid.data.status };
   });
 
 export const cancelCheckout = createServerFn({ method: "POST" })
@@ -246,12 +320,12 @@ export const confirmOrderCompleted = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ order_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const order = await readOrder(context, data.order_id);
-    if (!order || order.buyer_id !== context.userId || order.status !== "ticket_delivered") throw new Error("This order cannot be completed");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.rpc("transition_order", { p_order_id: order.id, p_expected: "ticket_delivered", p_next: "completed", p_actor_id: context.userId, p_note: "Buyer confirmed receipt" });
-    if (error) throw new Error("Could not complete order");
-    return { ok: true as const };
+    const { error } = await supabaseAdmin.rpc("confirm_buyer_entry", { p_order_id: data.order_id, p_buyer_id: context.userId });
+    if (error) throw new Error("Entry can be confirmed after the event starts and ticket delivery");
+    const { releasePayoutForOrder } = await import("@/lib/payments/process.server");
+    const payoutReleased = await releasePayoutForOrder(data.order_id).catch(() => false);
+    return { ok: true as const, payoutReleased };
   });
 
 export const reportOrderProblem = createServerFn({ method: "POST" })
@@ -277,12 +351,8 @@ export const adminRefundOrder = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
     if (!isAdmin) throw new Error("Forbidden");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: order } = await supabaseAdmin.from("orders").select("id, status").eq("id", data.order_id).maybeSingle();
-    if (!order || !["paid", "ticket_delivered", "disputed"].includes(order.status)) throw new Error("This order cannot be refunded");
-    const { error } = await supabaseAdmin.rpc("transition_order", { p_order_id: order.id, p_expected: order.status as "paid" | "ticket_delivered" | "disputed", p_next: "refunded", p_actor_id: context.userId, p_note: data.note });
-    if (error) throw new Error("Could not refund order");
-    await supabaseAdmin.from("disputes").update({ status: "resolved_refund", resolution_note: data.note }).eq("order_id", order.id);
+    const { refundOrder } = await import("@/lib/payments/process.server");
+    await refundOrder(data.order_id, context.userId, data.note);
     return { ok: true as const };
   });
 

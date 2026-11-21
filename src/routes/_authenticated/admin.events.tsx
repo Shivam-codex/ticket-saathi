@@ -29,16 +29,17 @@ type Ev = AdminData["events"][number];
 type Tier = { name: string; rupees: string };
 type Form = {
   id?: string; title: string; category: (typeof CATEGORIES)[number]; venue_id: string; newVenue: { name: string; city: string; state_code: string };
-  organizer: string; description: string; date: string; time: string; image_url: string; tiers: Tier[]; is_resellable: boolean; resale_max_percent: string;
+  organizer: string; description: string; date: string; time: string; endDate: string; endTime: string; image_url: string; tiers: Tier[]; is_resellable: boolean; resale_max_percent: string;
 };
 const NEW = "__new";
-const empty = (): Form => ({ title: "", category: "sports", venue_id: "", newVenue: { name: "", city: "", state_code: "MH" }, organizer: "", description: "", date: "", time: "19:30", image_url: "", tiers: [{ name: "General", rupees: "" }], is_resellable: true, resale_max_percent: "" });
+const empty = (): Form => ({ title: "", category: "sports", venue_id: "", newVenue: { name: "", city: "", state_code: "MH" }, organizer: "", description: "", date: "", time: "19:30", endDate: "", endTime: "22:30", image_url: "", tiers: [{ name: "General", rupees: "" }], is_resellable: true, resale_max_percent: "" });
 
 function toForm(e: Ev): Form {
   const ist = new Date(new Date(e.starts_at).getTime() + 330 * 60_000).toISOString();
+  const endIst = e.ends_at ? new Date(new Date(e.ends_at).getTime() + 330 * 60_000).toISOString() : null;
   const tiers = (Array.isArray(e.face_value_tiers) ? e.face_value_tiers : []) as { name: string; price_paise: number }[];
   return { id: e.id, title: e.title, category: e.category === "other" ? "sports" : e.category, venue_id: e.venue_id, newVenue: { name: "", city: "", state_code: "MH" }, organizer: e.organizer ?? "", description: e.description ?? "",
-    date: ist.slice(0, 10), time: ist.slice(11, 16), image_url: e.image_url ?? "", tiers: tiers.map((t) => ({ name: t.name, rupees: String(t.price_paise / 100) })),
+    date: ist.slice(0, 10), time: ist.slice(11, 16), endDate: endIst?.slice(0, 10) ?? "", endTime: endIst?.slice(11, 16) ?? "22:30", image_url: e.image_url ?? "", tiers: tiers.map((t) => ({ name: t.name, rupees: String(t.price_paise / 100) })),
     is_resellable: e.is_resellable, resale_max_percent: e.resale_max_percent == null ? "" : String(e.resale_max_percent) };
 }
 
@@ -69,7 +70,7 @@ function AdminEvents() {
         ...(form.id ? { id: form.id } : {}), title: form.title, category: form.category,
         ...(form.venue_id && form.venue_id !== NEW ? { venue_id: form.venue_id } : { new_venue: form.newVenue }),
         ...(form.organizer ? { organizer: form.organizer } : {}), ...(form.description ? { description: form.description } : {}),
-        starts_at: `${form.date}T${form.time}:00+05:30`, ...(form.image_url ? { image_url: form.image_url } : {}),
+        starts_at: `${form.date}T${form.time}:00+05:30`, ends_at: form.endDate ? `${form.endDate}T${form.endTime}:00+05:30` : null, ...(form.image_url ? { image_url: form.image_url } : {}),
         face_value_tiers: tiers, is_resellable: form.is_resellable,
         resale_max_percent: form.resale_max_percent === "" ? null : Number(form.resale_max_percent),
       } });
@@ -122,6 +123,11 @@ function AdminEvents() {
                 <div><Label>Date</Label><Input type="date" value={form.date} onChange={(e) => up({ date: e.target.value })} /></div>
                 <div><Label>Time (IST)</Label><Input type="time" value={form.time} onChange={(e) => up({ time: e.target.value })} /></div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><Label>End date (optional)</Label><Input type="date" value={form.endDate} onChange={(e) => up({ endDate: e.target.value })} /></div>
+                <div><Label>End time (IST)</Label><Input type="time" value={form.endTime} onChange={(e) => up({ endTime: e.target.value })} /></div>
+              </div>
+              <p className="-mt-2 text-xs text-muted-foreground">Automatic payout releases 24 hours after this end time if there is no dispute. Without it, only buyer-confirmed entry releases payout.</p>
               <div><Label>Banner</Label>
                 <Input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
                 <Input className="mt-2" placeholder="…or paste an image URL" value={form.image_url} onChange={(e) => up({ image_url: e.target.value })} />

@@ -36,7 +36,7 @@ function MyListings() {
   const rows = Route.useLoaderData();
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="flex items-center justify-between"><h1 className="text-3xl font-extrabold">{t("ml.title")}</h1><Button asChild><Link to="/sell">{t("hero.cta.sell")}</Link></Button></div>
+      <div className="flex items-center justify-between gap-3"><h1 className="text-3xl font-extrabold">{t("ml.title")}</h1><div className="flex gap-2"><Button asChild variant="outline"><Link to="/seller/earnings">{t("nav.earnings")}</Link></Button><Button asChild><Link to="/sell">{t("hero.cta.sell")}</Link></Button></div></div>
       <ul className="mt-6 space-y-3">
         {rows.map((r) => <ListingRow key={r.id} r={r} />)}
         {!rows.length && <li className="rounded-3xl border bg-card p-6 text-muted-foreground">{t("ml.empty")}</li>}

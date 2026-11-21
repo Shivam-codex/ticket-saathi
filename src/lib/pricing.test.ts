@@ -49,6 +49,21 @@ describe("order pricing", () => {
     expect(quote.sellerNetPaise).toBe(12_345);
   });
 
+  it("keeps TCS and TDS at zero unless explicitly enabled", () => {
+    const quote = calculateOrderQuote(100_000, 1, { ...defaults, tcsBps: 100, tdsBps: 200 });
+    expect(quote.tcsPaise).toBe(0);
+    expect(quote.tdsPaise).toBe(0);
+    expect(quote.sellerPayoutPaise).toBe(94_100);
+  });
+
+  it("applies configured tax placeholders without changing the buyer total", () => {
+    const quote = calculateOrderQuote(100_000, 1, { ...defaults, taxEnabled: true, tcsBps: 100, tdsBps: 200 });
+    expect(quote.tcsPaise).toBe(1_000);
+    expect(quote.tdsPaise).toBe(2_000);
+    expect(quote.sellerPayoutPaise).toBe(91_100);
+    expect(quote.buyerTotalPaise).toBe(105_900);
+  });
+
   it("rejects fractional, negative and unsafe amounts", () => {
     expect(() => calculateOrderQuote(-1, 1, defaults)).toThrow();
     expect(() => calculateOrderQuote(10.5, 1, defaults)).toThrow();

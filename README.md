@@ -92,3 +92,22 @@ See `.env.example`.
 - [x] Mobile checkout has no horizontal overflow; seller rating and completed-sale count come from real orders.
 - [ ] Configure Redis credentials and repeat checkout to exercise the Redis lock; only the atomic database lock was exercised here.
 - [ ] Replace the mock adapter and draft tax details before accepting real payments.
+
+## Phase 5 — Payments, ledger and payouts
+
+- `PaymentProvider` supports `createOrder`, `verifyWebhook`, `refund`, `payoutToSeller` and `getStatus`. Mock remains the default; set `PAYMENT_PROVIDER=razorpay` only after marketplace approval.
+- Razorpay test mode is connected through the provider connector. Real checkout is blocked until each seller has an approved Razorpay Route account. Transfers must use provider-held funds (`on_hold`); PassOn never implements its own escrow or holds customer funds by custom logic.
+- **TODO: confirm payment-aggregator compliance with lawyer/CA before going live.** Also confirm Route/KYC, settlement, refund and marketplace eligibility with Razorpay.
+- The public webhook acknowledges unknown orders, deduplicates provider event IDs and reads payment/order status back from Razorpay before posting. The connector does not expose the key secret, so webhook HMAC cannot be checked; leave Razorpay's webhook Secret empty. Provider read-back and exact amount/order checks are the proof of payment. Webhook URL: `/api/public/razorpay-webhook`; subscribe to `payment.captured`, `payment.authorized` and `order.paid` separately in test and live modes.
+- Double-entry ledger groups every payment, refund and payout. TCS/TDS fields default to zero and are disabled until enabled by an admin; rates and applicability must be confirmed by a CA. `/admin/reconciliation` lists unbalanced groups and missing required entries.
+- Undelivered tickets auto-refund 24 hours after payment. Seller payout releases only after delivery, then buyer entry confirmation or 24 hours after the recorded event end with no open dispute. Missing event end times block time-based release. A five-minute authenticated scheduler processes both.
+- `/seller/earnings` shows pending/released proceeds, seller fees, GST, TCS/TDS and payout status, with PDF statements and per-order **draft** fee invoices. Provider references are deliberately excluded from browser responses.
+
+### Phase 5 test checklist
+- [x] Pricing and tax-hook unit tests cover zero/default TCS/TDS and the ₹1,000 → ₹1,059 / ₹941 example.
+- [x] Real database integration covers one payment across duplicate webhooks, full undelivered-ticket refund, duplicate-refund safety and entry-triggered ₹941 payout.
+- [x] Payout rules block disputes, undelivered orders, missing event ends and early release; reconciliation detects unbalanced or incomplete groups.
+- [x] Scheduled maintenance rejects unauthorised calls and runs successfully with scheduler authentication.
+- [x] Browser mock purchase, private ticket delivery and buyer entry confirmation complete successfully.
+- [ ] Complete Razorpay Route approval and linked seller accounts before testing or enabling real charges/transfers.
+- [ ] Obtain lawyer/CA approval for payment-aggregator compliance and tax treatment; GST and seller fee invoices remain drafts.

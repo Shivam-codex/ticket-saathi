@@ -66,7 +66,7 @@ export const getEvent = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const [ev, listings] = await Promise.all([
-      supabase.from("events").select("id, title, category, starts_at, image_url, organizer, description, is_resellable, face_value_tiers, resale_max_percent, venues(name, city, state_code, address)").eq("id", data.id).maybeSingle(),
+      supabase.from("events").select("id, title, category, starts_at, ends_at, image_url, organizer, description, is_resellable, face_value_tiers, resale_max_percent, venues(name, city, state_code, address)").eq("id", data.id).maybeSingle(),
       supabase.from("listings").select("id, section, seat_info, quantity, price_paise, face_value_paise, created_at").eq("event_id", data.id).eq("status", "active").order("price_paise").limit(100),
     ]);
     if (!ev.data) return null;
@@ -86,7 +86,7 @@ export const adminListEvents = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context);
     const [ev, venues] = await Promise.all([
-      context.supabase.from("events").select("id, title, category, starts_at, image_url, organizer, description, is_resellable, face_value_tiers, resale_max_percent, venue_id, venues(name, city)").order("starts_at", { ascending: false }).limit(200),
+      context.supabase.from("events").select("id, title, category, starts_at, ends_at, image_url, organizer, description, is_resellable, face_value_tiers, resale_max_percent, venue_id, venues(name, city)").order("starts_at", { ascending: false }).limit(200),
       context.supabase.from("venues").select("id, name, city, state_code").order("city").order("name"),
     ]);
     return { events: ev.data ?? [], venues: venues.data ?? [] };
@@ -102,11 +102,13 @@ export const eventInputSchema = z.object({
   organizer: z.string().trim().max(120).optional(),
   description: z.string().trim().max(2000).optional(),
   starts_at: z.string().datetime({ offset: true }),
+  ends_at: z.string().datetime({ offset: true }).nullable().optional(),
   image_url: z.string().url().max(2000).optional(),
   face_value_tiers: z.array(tierSchema).min(1).max(12),
   is_resellable: z.boolean(),
   resale_max_percent: z.number().int().min(0).max(500).nullable(),
-}).refine((v) => v.venue_id || v.new_venue, { message: "Choose or add a venue" });
+}).refine((v) => v.venue_id || v.new_venue, { message: "Choose or add a venue" })
+  .refine((v) => !v.ends_at || new Date(v.ends_at).getTime() > new Date(v.starts_at).getTime(), { message: "Event end must be after its start" });
 
 export const adminUpsertEvent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -121,7 +123,7 @@ export const adminUpsertEvent = createServerFn({ method: "POST" })
     }
     const row = {
       title: data.title, category: data.category, venue_id: venueId!, organizer: data.organizer ?? null, description: data.description ?? null,
-      starts_at: data.starts_at, image_url: data.image_url ?? null, face_value_tiers: data.face_value_tiers,
+      starts_at: data.starts_at, ends_at: data.ends_at ?? null, image_url: data.image_url ?? null, face_value_tiers: data.face_value_tiers,
       is_resellable: data.is_resellable, resale_max_percent: data.resale_max_percent,
     };
     const before = data.id ? (await context.supabase.from("events").select("*").eq("id", data.id).maybeSingle()).data : null;

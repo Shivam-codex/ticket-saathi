@@ -41,7 +41,7 @@ function CheckoutPage() {
     try {
       const result = await checkout({ data: { listing_id: data.listing.id, idempotency_key: key, buyer_name: name, buyer_phone: phone, buyer_upi_id: upi || undefined } });
       if (!result.ok) {
-        const messages = { invalid_phone: t("checkout.invalidPhone"), invalid_upi: t("checkout.invalidUpi"), unavailable: t("checkout.unavailable"), own_listing: t("checkout.ownListing") } as const;
+        const messages = { invalid_phone: t("checkout.invalidPhone"), invalid_upi: t("checkout.invalidUpi"), unavailable: t("checkout.unavailable"), own_listing: t("checkout.ownListing"), provider_unavailable: t("checkout.providerUnavailable") } as const;
         toast.error(messages[result.reason]);
         return;
       }
@@ -61,8 +61,8 @@ function CheckoutPage() {
           <div><Label htmlFor="buyer-name">{t("onb.name")}</Label><Input id="buyer-name" autoComplete="name" required minLength={2} maxLength={120} value={name} onChange={(e) => setName(e.target.value)} /></div>
           <div><Label htmlFor="buyer-phone">{t("auth.phone")}</Label><Input id="buyer-phone" type="tel" inputMode="tel" autoComplete="tel" required placeholder="98765 43210" value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
           <div><Label htmlFor="buyer-upi">{t("checkout.savedUpi")}</Label><Input id="buyer-upi" autoComplete="off" placeholder="name@okaxis" value={upi} onChange={(e) => setUpi(e.target.value)} /><p className="mt-1 text-xs text-muted-foreground">{t("checkout.upiHelp")}</p></div>
-          <div className="rounded-2xl bg-secondary p-4 text-sm"><p className="flex items-center gap-2 font-semibold"><LockKeyhole className="h-4 w-4" />{t("checkout.mockTitle")}</p><p className="mt-1 text-muted-foreground">{t("checkout.mock.d")}</p></div>
-          <Button type="submit" size="lg" disabled={busy} className="w-full rounded-2xl">{busy ? t("checkout.reserving") : t("checkout.reservePay")}</Button>
+          <div className="rounded-2xl bg-secondary p-4 text-sm"><p className="flex items-center gap-2 font-semibold"><LockKeyhole className="h-4 w-4" />{t(data.paymentProvider === "razorpay" ? "checkout.razorpayTitle" : "checkout.mockTitle")}</p><p className="mt-1 text-muted-foreground">{t(data.paymentProvider === "razorpay" ? "checkout.razorpay.d" : "checkout.mock.d")}</p>{!data.providerReady && <p className="mt-2 font-semibold text-destructive">{t("checkout.providerUnavailable")}</p>}</div>
+          <Button type="submit" size="lg" disabled={busy || !data.providerReady} className="w-full rounded-2xl">{busy ? t("checkout.reserving") : t("checkout.reservePay")}</Button>
         </form>
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <PriceBreakdown quote={data.quote} buyerFeeBps={data.feeConfig.buyer_fee_bps} gstBps={data.feeConfig.gst_bps} />

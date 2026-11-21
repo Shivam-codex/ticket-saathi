@@ -1,0 +1,51 @@
+create or replace function public.confirm_buyer_entry(p_order_id uuid, p_buyer_id uuid) returns public.orders
+language plpgsql security definer set search_path = public as $$
+declare v_order public.orders%rowtype;
+begin
+  select o.* into v_order from public.orders o
+    join public.listings l on l.id = o.listing_id
+    join public.events e on e.id = l.event_id
+    where o.id = p_order_id and o.buyer_id = p_buyer_id and o.status = 'ticket_delivered' and e.starts_at <= now()
+    for update of o;
+  if not found then raise exception 'ENTRY_CANNOT_BE_CONFIRMED'; end if;
+  update public.orders o set status = 'completed', entry_confirmed_at = now(), updated_at = now()
+    where o.id = p_order_id returning * into v_order;
+  insert into public.order_events(order_id,actor_id,from_status,to_status,note)
+    values (p_order_id,p_buyer_id,'ticket_delivered','completed','Buyer confirmed entry; seller payout is eligible');
+  return v_order;
+end;
+$$;
+revoke all on function public.confirm_buyer_entry(uuid,uuid) from public, anon, authenticated;
+grant execute on function public.confirm_buyer_entry(uuid,uuid) to service_role;
+
+create or replace function public.claim_payout(p_payout_id uuid) returns public.payouts
+language plpgsql security definer set search_path = public as $$
+declare v_payout public.payouts%rowtype; v_order public.orders%rowtype;
+begin
+  select p.* into v_payout from public.payouts p
+    join public.orders o on o.id = p.order_id
+    join public.listings l on l.id = o.listing_id
+    join public.events e on e.id = l.event_id
+    where p.id = p_payout_id and p.status in ('scheduled','on_hold')
+      and o.status in ('paid','ticket_delivered','completed')
+      and not exists (select 1 from public.disputes d where d.order_id = o.id and d.status in ('open','reviewing'))
+      and (o.entry_confirmed_at is not null or (e.ends_at is not null and e.ends_at + interval '24 hours' <= now()))
+    for update of p skip locked;
+  if not found then return null; end if;
+  update public.payouts p set status = 'processing', failure_reason = null, updated_at = now()
+    where p.id = p_payout_id returning * into v_payout;
+  insert into public.payment_operations(order_id,operation,provider,status,updated_at)
+    values (v_payout.order_id,'payout',v_payout.provider,'processing',now())
+    on conflict (order_id,operation) do update set status = 'processing', error = null, updated_at = now()
+    where payment_operations.status <> 'succeeded';
+  select * into v_order from public.orders o where o.id = v_payout.order_id;
+  if v_order.status = 'ticket_delivered' and v_order.entry_confirmed_at is null then
+    update public.orders o set status = 'completed', updated_at = now() where o.id = v_order.id;
+    insert into public.order_events(order_id,actor_id,from_status,to_status,note)
+      values (v_order.id,null,'ticket_delivered','completed','Automatically completed 24 hours after event ended');
+  end if;
+  return v_payout;
+end;
+$$;
+revoke all on function public.claim_payout(uuid) from public, anon, authenticated;
+grant execute on function public.claim_payout(uuid) to service_role;
