@@ -123,7 +123,7 @@ See `.env.example`.
 - Only allowlisted transferable events accept listings/checkout during soft launch. Admin → Events has a per-event kill switch; Admin → Launch has per-state switches. Existing orders remain readable.
 - RLS integration tests cover every application table, anonymous private-data denial, self-verification protection, invite redemption, launch switches and privileged RPCs. Only three distinct trusted reporters can auto-hide a listing.
 - Temporary rate limits are best-effort per Worker instance, not globally guaranteed. Cloudflare Turnstile supports phone signup and listing creation; configure `VITE_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, Auth captcha settings and `TURNSTILE_REQUIRED=true` before production.
-- CSP/security headers and public-page edge caching are applied. Dependency audit is clean after patched overrides. Mock payments are blocked by default in production unless `ALLOW_MOCK_PAYMENTS=true`; never use that override for launch.
+- CSP/security headers and public-page edge caching are applied. Dependency audit is clean after patched overrides. Mock payments now require `ALLOW_MOCK_PAYMENTS=true` in a non-production test environment and remain blocked in production even if that flag is set. Playwright starts an isolated test server with this opt-in; keep it off for launch.
 - Sentry/PostHog setup was declined, so integrations remain inactive and optional. If connected later, browser events are `listing_created`, `checkout_started`, `payment_success` and `dispute_opened`. Existing Lovable error reporting remains active.
 - `/api/public/health` returns non-sensitive app/database health for an external uptime monitor.
 

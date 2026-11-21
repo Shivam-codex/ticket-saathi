@@ -7,11 +7,11 @@ export function getPaymentProvider(name: PaymentProviderName): PaymentProvider {
 }
 
 export function mockPaymentsAllowed(env: Record<string, string | undefined>): boolean {
-  return env["NODE_ENV"] !== "production" || env["ALLOW_MOCK_PAYMENTS"] === "true";
+  return env["ALLOW_MOCK_PAYMENTS"] === "true" && env["NODE_ENV"] !== "production" && env["APP_ENV"] !== "production";
 }
 
 export function assertMockPaymentsAllowed() {
-  if (!mockPaymentsAllowed(process.env)) throw new Error("Mock payments are disabled in production");
+  if (!mockPaymentsAllowed(process.env)) throw new Error("Mock payments require an explicit non-production test opt-in");
 }
 
 export function configuredPaymentProvider(): PaymentProviderName {

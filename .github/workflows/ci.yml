@@ -24,16 +24,6 @@ jobs:
       - name: Install Playwright Chromium
         if: vars.CI_DATABASE_TESTS == 'true'
         run: bunx playwright install --with-deps chromium
-      - name: Start staging preview
-        if: vars.CI_DATABASE_TESTS == 'true'
-        run: bun run dev --host 0.0.0.0 &
-        env:
-          VITE_SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ vars.STAGING_SUPABASE_PROJECT_ID }}
-          SUPABASE_URL: ${{ vars.STAGING_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ vars.STAGING_SUPABASE_PUBLISHABLE_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
       - name: Full marketplace browser flow
         if: vars.CI_DATABASE_TESTS == 'true'
         run: bunx playwright test
