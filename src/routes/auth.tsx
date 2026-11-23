@@ -15,9 +15,9 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — PassOn" },
-      { name: "description", content: "Sign in to PassOn with your mobile number or Google account." },
+      { name: "description", content: "Sign in to PassOn with your email, mobile number or Google account." },
       { property: "og:title", content: "Sign in — PassOn" },
-      { property: "og:description", content: "Sign in with mobile OTP or Google." },
+      { property: "og:description", content: "Sign in with email, mobile OTP or Google." },
       { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     ],
   }),
@@ -31,6 +31,8 @@ const GoogleG = () => (
 function AuthPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
@@ -41,6 +43,15 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/settings", replace: true }); });
   }, [navigate]);
+
+  const emailSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setBusy(false);
+    if (error) { toast.error(error.message); return; }
+    navigate({ to: "/settings", replace: true });
+  };
 
   const sendOtp = async () => {
     const e164 = normaliseIndianPhone(phone);
@@ -71,8 +82,24 @@ function AuthPage() {
     <div className="mx-auto max-w-md px-4 py-12">
       <div className="rounded-3xl border bg-card p-7">
         <h1 className="text-2xl font-extrabold">{t("auth.title")}</h1>
+        {!sentTo && (
+          <>
+            <form className="mt-6 space-y-4" onSubmit={emailSignIn}>
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("auth.email")}</Label>
+                <Input id="email" type="email" autoComplete="email" className="h-11" value={email} onChange={(event) => setEmail(event.target.value)} required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{t("auth.password")}</Label>
+                <Input id="password" type="password" autoComplete="current-password" className="h-11" value={password} onChange={(event) => setPassword(event.target.value)} required />
+              </div>
+              <Button type="submit" className="h-11 w-full" disabled={busy || !email.trim() || !password}>{t("auth.emailSignIn")}</Button>
+            </form>
+            <div className="my-6 flex items-center gap-3 text-xs uppercase text-muted-foreground"><span className="h-px flex-1 bg-border" />{t("auth.or")}<span className="h-px flex-1 bg-border" /></div>
+          </>
+        )}
         {!sentTo ? (
-          <div className="mt-6 space-y-3">
+          <div className="space-y-3">
             <Label htmlFor="phone">{t("auth.phone")}</Label>
             <div className="flex gap-2">
               <span className="grid h-11 place-items-center rounded-md border bg-muted px-3 text-sm">+91</span>
